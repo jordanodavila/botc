@@ -11,7 +11,7 @@
 <body style="font-family: sans-serif; text-align: center; background-color: #2c3e50; color: white;">
 
     <div id="tela-escolha">
-        <h1>Como você quer entrar?</h1>
+        <h1>Como você quer entrar? v2</h1>
         <button onclick="configurarTela('tv')" style="padding: 20px;">SOU O NOTEBOOK (TV)</button>
         <button onclick="configurarTela('jogador')" style="padding: 20px;">SOU JOGADOR (CELULAR)</button>
     </div>
@@ -120,15 +120,15 @@
         });
     }
 
-    // Função para resetar a interface do celular
-    function voltarParaTelaInicial() {
-        localStorage.removeItem('meuNome_TTT'); // Opcional: limpa o nome salvo
-        document.body.style.backgroundColor = "#2c3e50"; // Cor original
-        document.getElementById('secao-jogador').style.display = 'block';
-        document.getElementById('form-registro').style.display = 'block';
-        document.getElementById('status-papel').style.display = 'none';
-        document.getElementById('nomeInput').value = ""; // Limpa o campo de texto
-    }
+        // Função para resetar a interface do celular
+        function voltarParaTelaInicial() {
+            localStorage.removeItem('meuNome_TTT'); // Opcional: limpa o nome salvo
+            document.body.style.backgroundColor = "#2c3e50"; // Cor original
+            document.getElementById('secao-jogador').style.display = 'block';
+            document.getElementById('form-registro').style.display = 'block';
+            document.getElementById('status-papel').style.display = 'none';
+            document.getElementById('nomeInput').value = ""; // Limpa o campo de texto
+        }
 
         // --- LÓGICA DA TV (NOTEBOOK) ---
         function iniciarMonitoramentoTV() {
@@ -145,16 +145,34 @@
 
         function executarSorteio() {
             db.ref('jogadores').once('value', (snapshot) => {
-                const jogadores = [];
-                snapshot.forEach((child) => { jogadores.push({ id: child.key }); });
+                let jogadores = [];
+                
+                // 1. Pegamos todos os IDs (nomes) que estão na sala
+                snapshot.forEach((child) => { 
+                    jogadores.push(child.key); 
+                });
 
                 if(jogadores.length < 2) return alert("Precisa de 2 ou mais pessoas!");
 
-                const indiceTraidor = Math.floor(Math.random() * jogadores.length);
+                // 2. Escolhemos QUEM será o traidor antes de começar a atualizar
+                const nomeTraidor = jogadores[Math.floor(Math.random() * jogadores.length)];
                 
-                jogadores.forEach((jog, index) => {
-                    const papelFinal = (index === indiceTraidor) ? "TRAIDOR" : "INOCENTE";
-                    db.ref('jogadores/' + jog.id).update({ papel: papelFinal });
+                console.log("O traidor sorteado foi: " + nomeTraidor);
+
+                // 3. Criamos um objeto com todos os papéis de uma vez
+                // Isso evita que o Firebase receba vários comandos picados
+                let atualizacoes = {};
+                jogadores.forEach((nome) => {
+                    atualizacoes[nome + '/papel'] = (nome === nomeTraidor) ? "TRAIDOR" : "INOCENTE";
+                });
+
+                // 4. Enviamos a atualização em massa (Atomic Update)
+                db.ref('jogadores').update(atualizacoes)
+                .then(() => {
+                    alert("Papéis sorteados com sucesso!");
+                })
+                .catch((error) => {
+                    alert("Erro ao sortear: " + error.message);
                 });
             });
         }
