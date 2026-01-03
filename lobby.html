@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste de Conexão</title>
+    <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-database-compat.js"></script>
+</head>
+<body style="text-align: center; font-family: sans-serif; transition: 0.5s;" id="corpo">
+
+    <h1>Status da Missão: <span id="status">Aguardando...</span></h1>
+
+    <div id="controles-jogador">
+        <p>Você é o JOGADOR</p>
+        <button onclick="completarTarefa()" style="padding: 20px; font-size: 20px;">MARCAR TAREFA COMO FEITA</button>
+        <button onclick="resetar()" style="display:block; margin: 20px auto;">Resetar Jogo</button>
+    </div>
+
+    <script>
+        // --- COLE SEU CONFIG DO FIREBASE AQUI ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyCUGHV8Q1q-k61imb6oHabuqhkjUwdqrJo",
+            authDomain: "jogo-ttt.firebaseapp.com",
+            projectId: "jogo-ttt",
+            storageBucket: "jogo-ttt.firebasestorage.app",
+            messagingSenderId: "97204447010",
+            appId: "1:97204447010:web:289494bd07f5691878a77b"
+        };
+        // ---------------------------------------
+
+        // Inicializa o Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // FUNÇÃO DO JOGADOR (Envia para o servidor)
+        function completarTarefa() {
+            db.ref('partida/missao').set('COMPLETA');
+        }
+
+        function resetar() {
+            db.ref('partida/missao').set('PENDENTE');
+        }
+
+        // FUNÇÃO DA TV (Escuta o servidor)
+        db.ref('partida/missao').on('value', (snapshot) => {
+            const valor = snapshot.val();
+            const statusEl = document.getElementById('status');
+            const corpoEl = document.getElementById('corpo');
+
+            if (valor === 'COMPLETA') {
+                statusEl.innerText = "MISSÃO CONCLUÍDA! ✅";
+                corpoEl.style.backgroundColor = "#2ecc71"; // Verde
+            } else {
+                statusEl.innerText = "PENDENTE... ❌";
+                corpoEl.style.backgroundColor = "white";
+            }
+        });
+    </script>
+</body>
+</html>
