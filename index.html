@@ -2377,107 +2377,132 @@
         }
 
         // FUNÇÃO ANOITECER ANTES DA ANIMAÇÃO
+        function anoitecer() {
+            // 1. Buscamos os dados da execução e a lista de jogadores simultaneamente
+            db.ref('partida').once('value').then(function (snapshot) {
+                const partida = snapshot.val();
+                const dadosExecucao = partida.forca ? partida.forca.emexecucao : null;
+
+                // Melhoria 1: Cálculo de maioria
+                // Filtramos os jogadores vivos do objeto ou array que você tem no Firebase
+                const jogadores = partida.jogadores || {};
+                const listaVivos = Object.values(jogadores).filter(p => p.vivo !== false);
+                const totalVivos = listaVivos.length;
+                const maioriaNecessaria = Math.floor(totalVivos / 2) + 1;
+
+                // Verificamos se há um candidato e se ele atingiu a maioria
+                if (dadosExecucao && dadosExecucao.nome && dadosExecucao.votos >= maioriaNecessaria) {
+
+                    const nomeDoMorto = dadosExecucao.nome;
+
+                    // Melhoria 2: Atualizar status para morto no Firebase
+                    // (Ajuste o caminho 'partida/jogadores/' conforme sua estrutura exata)
+                    db.ref('partida/jogadores/' + nomeDoMorto + '/vivo').set(false);
+
+                    // Salvar no firebase para o Coveiro
+                    db.ref('partida/configuracao/ultimoExecutado').set(nomeDoMorto);
+
+                    // Salva no firebase e dispara o anúncio
+                    db.ref('partida/configuracao/anuncioExecucao').set(nomeDoMorto);
+
+                    console.log(`${nomeDoMorto} foi executado com ${dadosExecucao.votos} votos.`);
+                } else {
+                    // Caso não tenha atingido a maioria ou não haja acusado
+                    db.ref('partida/configuracao/anuncioExecucao').set("Ninguém");
+                    console.log("Ninguém atingiu a maioria necessária para execução.");
+                }
+
+                // 2. Limpezas de fim de dia (removendo os nós conforme solicitado)
+                db.ref('partida/forca/quemJaIndicouHoje').remove();
+                db.ref('partida/forca/quemJaIndicadosNaRodada').remove(); // Corrigido conforme seu nó anterior
+                db.ref('partida/forca/emexecucao').remove();
+                db.ref('partida/configuracao/recordeVotosDia').set(0);
+
+                // 3. Muda a fase para Noite+
+                updateGamePhase('nightPlus');
+            });
+        }
+
         // function anoitecer() {
-        //     // 1. Buscamos os dados da execução e a lista de jogadores simultaneamente
-        //     db.ref('partida').once('value').then(function (snapshot) {
-        //         const partida = snapshot.val();
-        //         const dadosExecucao = partida.forca ? partida.forca.emexecucao : null;
+        //     const fader = document.getElementById('fader') || criarFader();
+        //     fader.classList.add('active');
+        //     tocarAudioNoite();
 
-        //         // Melhoria 1: Cálculo de maioria
-        //         // Filtramos os jogadores vivos do objeto ou array que você tem no Firebase
-        //         const jogadores = partida.jogadores || {};
-        //         const listaVivos = Object.values(jogadores).filter(p => p.vivo !== false);
-        //         const totalVivos = listaVivos.length;
-        //         const maioriaNecessaria = Math.floor(totalVivos / 2) + 1;
+        //     // 1. Criar o elemento da Lua
+        //     const lua = document.createElement('div');
+        //     lua.innerHTML = "🌕🐺"; // Você pode trocar por 🌚 se preferir
+        //     lua.className = 'lua-animada';
+        //     document.body.appendChild(lua);
 
-        //         // Verificamos se há um candidato e se ele atingiu a maioria
-        //         if (dadosExecucao && dadosExecucao.nome && dadosExecucao.votos >= maioriaNecessaria) {
+        //     // Pequeno delay para o navegador registrar a posição inicial antes de subir
+        //     setTimeout(() => {
+        //         lua.classList.add('lua-subindo');
+        //     }, 100);
 
-        //             const nomeDoMorto = dadosExecucao.nome;
+        //     setTimeout(() => {
+        //         db.ref('partida').once('value').then(function (snapshot) {
+        //             const partida = snapshot.val() || {};
+        //             const jogadores = partida.jogadores || {};
 
-        //             // Melhoria 2: Atualizar status para morto no Firebase
-        //             // (Ajuste o caminho 'partida/jogadores/' conforme sua estrutura exata)
-        //             db.ref('partida/jogadores/' + nomeDoMorto + '/vivo').set(false);
+        //             // --- Lógica de Execução (Sua lógica original preservada) ---
+        //             const dadosExecucao = partida.forca ? partida.forca.emexecucao : null;
+        //             const listaVivos = Object.values(jogadores).filter(p => p.vivo !== false);
+        //             const maioriaNecessaria = Math.floor(listaVivos.length / 2) + 1;
 
-        //             // Salvar no firebase para o Coveiro
-        //             db.ref('partida/configuracao/ultimoExecutado').set(nomeDoMorto);
+        //             if (dadosExecucao && dadosExecucao.nome && dadosExecucao.votos >= maioriaNecessaria) {
+        //                 const nomeDoMorto = dadosExecucao.nome;
+        //                 db.ref('partida/jogadores/' + nomeDoMorto + '/vivo').set(false);
+        //                 db.ref('partida/configuracao/ultimoExecutado').set(nomeDoMorto);
+        //                 db.ref('partida/configuracao/anuncioExecucao').set(nomeDoMorto);
+        //             } else {
+        //                 db.ref('partida/configuracao/anuncioExecucao').set("Ninguém");
+        //             }
 
-        //             // Salva no firebase e dispara o anúncio
-        //             db.ref('partida/configuracao/anuncioExecucao').set(nomeDoMorto);
+        //             // Limpezas
+        //             db.ref('partida/forca/quemJaIndicouHoje').remove();
+        //             db.ref('partida/forca/quemJaIndicadosNaRodada').remove();
+        //             db.ref('partida/forca/emexecucao').remove();
+        //             db.ref('partida/configuracao/recordeVotosDia').set(0);
 
-        //             console.log(`${nomeDoMorto} foi executado com ${dadosExecucao.votos} votos.`);
-        //         } else {
-        //             // Caso não tenha atingido a maioria ou não haja acusado
-        //             db.ref('partida/configuracao/anuncioExecucao').set("Ninguém");
-        //             console.log("Ninguém atingiu a maioria necessária para execução.");
-        //         }
+        //             // Muda a fase
+        //             updateGamePhase('nightPlus');
 
-        //         // 2. Limpezas de fim de dia (removendo os nós conforme solicitado)
-        //         db.ref('partida/forca/quemJaIndicouHoje').remove();
-        //         db.ref('partida/forca/quemJaIndicadosNaRodada').remove(); // Corrigido conforme seu nó anterior
-        //         db.ref('partida/forca/emexecucao').remove();
-        //         db.ref('partida/configuracao/recordeVotosDia').set(0);
+        //             // 2. Tocar o áudio e remover a lua após a animação (4 segundos)
+        //             setTimeout(() => {
+        //                 // Função para o seu áudio
+        //                 lua.remove();      // Remove a lua do HTML
 
-        //         // 3. Muda a fase para Noite+
-        //         updateGamePhase('nightPlus');
-        //     });
+        //                 // 3. Só agora a tela volta a aparecer (fader off)
+        //                 fader.classList.remove('active');
+        //             }, 3000);
+
+        //         });
+        //     }, 1500);
         // }
 
-        function anoitecer() {
+        function executarAnimacaoAnoitecer() {
             const fader = document.getElementById('fader') || criarFader();
             fader.classList.add('active');
-            tocarAudioNoite();
+            tocarAudioNoite(); // Executa o Base64
 
-            // 1. Criar o elemento da Lua
+            // Criar a Lua
             const lua = document.createElement('div');
-            lua.innerHTML = "🌕🐺"; // Você pode trocar por 🌚 se preferir
+            lua.innerHTML = "🌕🐺";
             lua.className = 'lua-animada';
             document.body.appendChild(lua);
 
-            // Pequeno delay para o navegador registrar a posição inicial antes de subir
+            // Inicia subida da lua
+            setTimeout(() => lua.classList.add('lua-subindo'), 100);
+
+            // Após 4 segundos (tempo da subida)
             setTimeout(() => {
-                lua.classList.add('lua-subindo');
-            }, 100);
+                lua.remove();
 
-            setTimeout(() => {
-                db.ref('partida').once('value').then(function (snapshot) {
-                    const partida = snapshot.val() || {};
-                    const jogadores = partida.jogadores || {};
-
-                    // --- Lógica de Execução (Sua lógica original preservada) ---
-                    const dadosExecucao = partida.forca ? partida.forca.emexecucao : null;
-                    const listaVivos = Object.values(jogadores).filter(p => p.vivo !== false);
-                    const maioriaNecessaria = Math.floor(listaVivos.length / 2) + 1;
-
-                    if (dadosExecucao && dadosExecucao.nome && dadosExecucao.votos >= maioriaNecessaria) {
-                        const nomeDoMorto = dadosExecucao.nome;
-                        db.ref('partida/jogadores/' + nomeDoMorto + '/vivo').set(false);
-                        db.ref('partida/configuracao/ultimoExecutado').set(nomeDoMorto);
-                        db.ref('partida/configuracao/anuncioExecucao').set(nomeDoMorto);
-                    } else {
-                        db.ref('partida/configuracao/anuncioExecucao').set("Ninguém");
-                    }
-
-                    // Limpezas
-                    db.ref('partida/forca/quemJaIndicouHoje').remove();
-                    db.ref('partida/forca/quemJaIndicadosNaRodada').remove();
-                    db.ref('partida/forca/emexecucao').remove();
-                    db.ref('partida/configuracao/recordeVotosDia').set(0);
-
-                    // Muda a fase
-                    updateGamePhase('nightPlus');
-
-                    // 2. Tocar o áudio e remover a lua após a animação (4 segundos)
-                    setTimeout(() => {
-                         // Função para o seu áudio
-                        lua.remove();      // Remove a lua do HTML
-
-                        // 3. Só agora a tela volta a aparecer (fader off)
-                        fader.classList.remove('active');
-                    }, 3000);
-
-                });
-            }, 1500);
+                // A tela volta ao normal
+                setTimeout(() => {
+                    fader.classList.remove('active');
+                }, 1000); // Um pequeno respiro antes de clarear
+            }, 4000);
         }
 
         // 4. Função para tocar o seu áudio
@@ -2675,6 +2700,7 @@
         // Sincronizando anúncio de execução
         db.ref('partida/configuracao/anuncioExecucao').on('value', function (snapshot) {
             const nomeExecutado = snapshot.val();
+            executarAnimacaoAnoitecer();
 
             if (nomeExecutado) {
                 if (nomeExecutado === "Ninguém") {
