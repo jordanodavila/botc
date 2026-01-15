@@ -822,7 +822,7 @@
 
             document.getElementById('login-area').classList.add('hidden');
             document.getElementById('game-area').classList.remove('hidden');
-            
+
 
             if (loginJogador === "NARRADOR") {
                 document.getElementById('upload-screen').classList.remove('hidden');
@@ -837,7 +837,7 @@
                     loginEquipe = data.tipo; // ATRIBUIÇÃO NA VARIÁVEL GLOBAL
                     const card = document.getElementById('role-card');
                     card.classList.remove('hidden');
-                    
+
 
                     // Define cores baseadas no tipo
                     const cores = { "Aldeão": "#2b9453", "Minion": "#b62937", "Evil": "#e80d0d", "Forasteiro": "#2280a9" };
@@ -848,11 +848,11 @@
                 }
             });
             db.ref('partida/configuracao/statusLobby').once('value').then((snapshot) => {
-            if (snapshot.val() === "aberto") {
-                console.log("Status já está aberto. Carregando dados...");
-                importarDoFirebase();
-            }
-    });
+                if (snapshot.val() === "aberto") {
+                    console.log("Status já está aberto. Carregando dados...");
+                    importarDoFirebase();
+                }
+            });
         }
 
         function abrirgame() {
@@ -893,7 +893,7 @@
             }, (error) => {
                 console.error("Erro crítico de leitura no Firebase:", error);
             });
-            
+
         }
 
         // COMEÇANDO O GAME
@@ -985,6 +985,7 @@
         function renderScript(totalPlayers) {
             const scriptList = document.getElementById('script-list');
             scriptList.innerHTML = '';
+
 
             /* Usado para Dropdowns */
             // ATUALIZAÇÃO: Agora filtramos pela propriedade 'vivo' que vem do Firebase
@@ -1643,6 +1644,20 @@
                     warningAtivo.style.display = 'block';
                 }
             }
+
+            // Versão 31
+            if ((isNightOne || isNightPlus) && loginJogador == "NARRADOR") {
+                addStep("Amanhecer", "Ir para o dia", "☀️", "bg-day", `
+                <div style="margin-top: 20px; padding: 15px; border-top: 2px dashed #ccc; text-align: center;">
+                    <button onclick="amanhecer()"
+                        style="background: #FFD600; color: #263238; border: none; padding: 15px 30px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 1.1em; box-shadow: 0 4px 6px rgba(0,0,0,0.2); width: 100%;">
+                        ☀️ Encerrar Noite e Ir para o Dia
+                    </button>
+                    <small style="color: #7f8c8d; display: block; margin-top: 8px;">Apenas o Narrador pode encerrar a noite.</small>
+                </div>
+            `);
+                    }
+
 
             if (isDay) {
                 // 1. Primeiro o Card de Resumo (Amanhecer)
@@ -2353,6 +2368,11 @@
             setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
         }
 
+        function amanhecer() {
+            
+            updateGamePhase("day")
+        }
+
         // Função que o Narrador chama ao mudar o Select
         function updateGamePhase(novaFase) {
             // ATUALIZA FIREBASE
@@ -2615,10 +2635,10 @@
         // Sincronizando Lobby
         db.ref('partida/configuracao/statusLobby').on('value', (snapshot) => {
             const status = snapshot.val();
-            
+
             if (status === "aberto") {
                 importarDoFirebase();
-                
+
                 console.log("A partida começou!");
             }
         });
