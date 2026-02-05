@@ -670,7 +670,7 @@
                                 style="background:#e3f2fd;border-left:5px solid #2196f3;padding:10px;border-radius:8px;">
                                 <strong style="color:#0d47a1;">🔵 Bêbado:</strong>
                                 <p style="margin:5px 0;font-size:0.85em;color:#1565c0;">
-                                    Você não sabe que é o Bêbado. Você acha que é um personagem de um Aldeão,
+                                    Você não sabe que é o Bêbado. Você acha que é um Aldeão,
                                     mas suas informações podem ser falsas.
                                 </p>
                             </div>
@@ -703,9 +703,9 @@
 
                             <div
                                 style="background:#ffebee;border-left:5px solid #ef5350;padding:10px;border-radius:8px;">
-                                <strong style="color:#b71c1c;">🔴 Scarlet Woman:</strong>
+                                <strong style="color:#b71c1c;">🔴 Mulher Escarlate:</strong>
                                 <p style="margin:5px 0;font-size:0.85em;color:#c62828;">
-                                    Se houver 5 ou mais jogadores vivos (Forasteiros não contam) e o Lobisomem morrer,
+                                    Se houver 5 ou mais jogadores vivos (viajantes não contam) e o Lobisomem morrer,
                                     você se torna o Lobisomem.
                                 </p>
                             </div>
@@ -723,7 +723,7 @@
                                 <strong style="color:#7f0000;">🔴 Lobisomem:</strong>
                                 <p style="margin:5px 0;font-size:0.85em;color:#8e0000;">
                                     Cada noite (exceto a primeira), escolha um jogador para morrer.
-                                    Se você se matar dessa maneira, um Minion se torna o Lobisomem.
+                                    <!-- Se você se matar dessa maneira, um Minion se torna o Lobisomem. -->
                                 </p>
                             </div>
 
@@ -753,17 +753,43 @@
         <div id="modal-morte-noite" class="hidden"
             style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(30, 0, 0, 0.95); z-index: 11000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; padding: 20px;">
 
-            <h1 id="morte-noite-titulo" style="color: #d32f2f; font-size: 2.5em; margin-bottom: 20px;">🩸 TRAGÉDIA NA NOITE</h1>
+            <h1 id="morte-noite-titulo" style="color: #d32f2f; font-size: 2.5em; margin-bottom: 20px;">🩸 TRAGÉDIA NA
+                NOITE</h1>
 
             <div id="morte-noite-corpo" style="font-size: 1.5em; line-height: 1.4; font-style: italic;">
             </div>
-
-            <button onclick="fecharMorteNoite()"
+            <button id="morte-noite-botao" onclick="fecharMorteNoite()"
                 style="margin-top: 40px; background: #d32f2f; color: white; border: none; padding: 10px 40px; border-radius: 5px; font-weight: bold; cursor: pointer;">
                 Lamentar e Prosseguir
             </button>
         </div>
     </div>
+
+    <div id="end-screen" class="hidden"
+        style="text-align: center; padding: 50px; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+        <h1 id="victory-message" style="font-size: 3rem; text-shadow: 2px 2px #000;"></h1>
+        <div id="victory-icon" style="font-size: 100px; margin: 20px 0;"></div>
+        <button onclick="window.location.reload()"
+            style="width: auto; padding: 15px 30px; background: #333; color: white; border: none; border-radius: 8px; cursor: pointer;">
+            Voltar ao Início
+        </button>
+    </div>
+
+    <style>
+        .hidden {
+            display: none !important;
+        }
+
+        .bg-good {
+            background: radial-gradient(circle, #2e7d32, #1b5e20);
+            color: white;
+        }
+
+        .bg-evil {
+            background: radial-gradient(circle, #c62828, #8e0000);
+            color: white;
+        }
+    </style>
 
     <h1>Monitor de Sincronização</h1>
     <div class="debug-box">
@@ -794,7 +820,7 @@
         let personagemEnvenenado = "";
         let personagemDrunk = "";
 
-        var MongeProtectedPlayer = null;
+        var MongeProtectedRole = null;
         var victimThisNight = null;
         var victimNameThisNight = null;
 
@@ -812,6 +838,8 @@
         let selectedInvestigadorRealPlayer = ""; // Nome do dono do personagem escolhido
         let selectedInvestigadorFakePlayer = ""; // Nome do segundo jogador apontado (Fake)
 
+        let selectedGuardiãoRole = "";
+
         let selectedCartomantePlayer1 = "";
         let selectedCartomantePlayer2 = "";
 
@@ -822,6 +850,8 @@
         let jogadoresQueJaIndicadosNaRodada = {};
         let jogadoresQueJaVotaramNaRodada = {};
         let ultimoExecutado = "";
+        let virgemJaNomeada = false;
+        let matadorJaAtirou = false;
 
         let jogadoresFantasmasVotoGasto = {};
 
@@ -859,7 +889,7 @@
             if (loginJogador === "NARRADOR") {
                 document.getElementById('upload-screen').classList.remove('hidden');
                 db.ref('partida/configuracao/statusLobby').set("fechado");
-            }
+            };
 
             // Fica "escutando" a entrada específica deste jogador
             db.ref('partida/jogadores/' + nome).on('value', (snapshot) => {
@@ -883,13 +913,13 @@
                 if (snapshot.val() === "aberto") {
                     console.log("Status já está aberto. Carregando dados...");
                     importarDoFirebase();
-                }
+                };
             });
-        }
+        };
 
         function abrirgame() {
             db.ref('partida/configuracao/statusLobby').set("aberto");
-        }
+        };
 
         // --- FUNÇÕES DE CARREGAMENTO ---
 
@@ -926,19 +956,15 @@
                 console.error("Erro crítico de leitura no Firebase:", error);
             });
 
-        }
+        };
 
         // COMEÇANDO O GAME
         function startGame(data) {
-            console.log("Aqui1")
             document.getElementById('status-msg').classList.add('hidden');
-            console.log("Aqui2")
             if (loginJogador === "NARRADOR") {
                 document.getElementById('upload-screen').classList.add('hidden');
-                console.log("Aqui3")
-            }
+            };
             document.getElementById('game-content').classList.remove('hidden');
-            console.log("Aqui4")
 
             // Inicializa status de vida e voto
             playersData = data.personagens_selecionados.map(p => ({
@@ -948,16 +974,13 @@
             }));
 
             rolesInPlay = playersData.map(p => p.personagem);
-            console.log("Aqui5")
-            renderAdminPanel()
+            renderAdminPanel();
             if (loginJogador === "NARRADOR" || loginPersonagem === "Espião") {
                 document.getElementById('titulo-grimorio').classList.remove('hidden');
                 renderGrimoire();
-            }
-            console.log("Aqui6")
+            };
             renderScript(data.num_jogadores);
-            console.log("Aqui7")
-        }
+        };
 
         // 2. Renderizar Grimório
         function renderGrimoire() {
@@ -991,8 +1014,7 @@
                 </div>
                 
                 <div style="display: flex; gap: 5px;">
-                    <button class="btn-toggle" 
-                            onclick="toggleDeath(${index})" 
+                    <button class="btn-toggle" onclick="toggleDeath(${index})"
                             style="background:${isDead ? '#555' : '#d32f2f'}; color:white; border:none; padding: 6px 10px; border-radius: 4px; cursor: pointer;">
                         ${isDead ? 'Ressuscitar' : 'Matar'}
                     </button>
@@ -1011,7 +1033,7 @@
         `;
                 list.appendChild(card);
             });
-        }
+        };
 
         // 3. Renderizar Roteiro
         function renderScript(totalPlayers) {
@@ -1030,7 +1052,7 @@
             const envenenadorVivo = obterVivo("Envenenador");
             const MongeVivo = obterVivo("Monge");
             const EspiãoVivo = obterVivo("Espião");
-            const scarletwomanVivo = obterVivo("Scarlet Woman");
+            const escarlatewomanVivo = obterVivo("Mulher Escarlate");
             const baronVivo = obterVivo("Baron");
             const EmpataVivo = obterVivo("Empata");
             const CartomanteVivo = obterVivo("Cartomante");
@@ -1040,6 +1062,7 @@
             const BibliotecárioVivo = obterVivo("Bibliotecário");
             const lobisomemVivo = obterVivo("Lobisomem");
             const MordomoVivo = obterVivo("Mordomo");
+            const MatadorVivo = obterVivo("Matador");
 
             // DEFINIÇÕES DE ESTADO
             const isNightOne = (currentPhase === "night1");
@@ -1058,11 +1081,14 @@
             // 1. Verificamos se o Monge faz parte do jogo e está vivo
             const mongeEstaNoJogo = playersData.find(p => p.personagem === "Monge" && p.vivo !== false);
             // 2. Criamos a condição de bloqueio
-            // Se o envenenador existe/está vivo E ainda não escolheu ninguém no Firebase (personagemEnvenenado está vazio)
-            const aguardandoMonge = mongeEstaNoJogo && (!MongeProtectedPlayer || MongeProtectedPlayer === "");
+            // Se o Monge existe/está vivo E ainda não escolheu ninguém no Firebase (MongeProtectedRole está vazio)
+            const aguardandoMonge = mongeEstaNoJogo && (!MongeProtectedRole || MongeProtectedRole === "");
 
-
-
+            // 1. Verificamos se o Lobisomem faz parte do jogo e está vivo
+            const LobisomemEstaNoJogo = playersData.find(p => p.personagem === "Lobisomem" && p.vivo !== false);
+            // 2. Criamos a condição de bloqueio
+            // Se o Lobisomem existe/está vivo E ainda não escolheu ninguém no Firebase (victimThisNight está vazio)
+            const aguardandoLobisomem = LobisomemEstaNoJogo && (!victimThisNight || victimThisNight === "");
 
             // --- MINIONS ---
             if (isNightOne && total >= 7 && (loginEquipe == "Evil" || loginEquipe == "Minion" || loginJogador == "NARRADOR")) {
@@ -1084,7 +1110,7 @@
                 </div>
 
     `);
-            }
+            };
 
 
 
@@ -1112,12 +1138,12 @@
                     const nomeAlvo = dadosAlvo ? dadosAlvo.jogador : personagemEnvenenado;
 
                     addStep(
-                        "Envenenador", `Envenenador (${nomeRealEnvenenador})`, "🧪", "bg-envenenador", `
-                <div class="instruction" style="font-size: 10px;">Habilidade: Cada noite, escolha um jogador: ele estará envenenado.</div>
-                <div style="background:#4A148C; color:white; padding:10px; border-radius:5px; margin-top:10px; font-weight:bold; text-align:center;">
-                    🧪 VENENO APLICADO: ${nomeAlvo}
-                </div>
-                `);
+                    "Envenenador", `Envenenador (${nomeRealEnvenenador})`, "🧪", "bg-envenenador", `
+                    <div class="instruction" style="font-size: 10px;">Habilidade: Cada noite, escolha um jogador: ele estará envenenado.</div>
+                    <div style="background:#4A148C; color:white; padding:10px; border-radius:5px; margin-top:10px; font-weight:bold; text-align:center;">
+                        🧪 VENENO APLICADO: ${nomeAlvo}
+                    </div>
+                    `);
                 }
                 // --- CENÁRIO C: AINDA PRECISA ESCOLHER O ALVO ---
                 else {
@@ -1134,8 +1160,8 @@
                 <div id="poison-feedback" style="font-size:12px; font-style:italic; color:grey;">Nenhum alvo selecionado.</div>
             `
                     );
-                }
-            }
+                };
+            };
 
             // --- NARRADOR ---
             if (rolesInPlay.includes("Envenenador") && envenenadorVivo && (isNightOne || isNightPlus) && loginJogador == "NARRADOR") {
@@ -1150,35 +1176,59 @@
                     <span id="poison-val" style="font-weight: bold; color: #d32f2f;">${personagemEnvenenado}</span>
                 </div>
             `);
-            }
+            };
 
             // --- MONGE ---
             // --- JOGADOR ---
-            if (rolesInPlay.includes("Monge") && MongeVivo && isNightPlus && (loginPersonagem == "Monge" || loginJogador == "NARRADOR")) {
+            if (rolesInPlay.includes("Monge") && (loginPersonagem == "Monge" || loginJogador == "NARRADOR")) {
                 const dadosMonge = playersData.find(p => p.personagem === "Monge");
                 const nomeRealMonge = dadosMonge ? dadosMonge.jogador : "---";
 
-                // Se o Envenenador ainda não jogou, mostramos apenas o aviso dentro do Step
-                if (aguardandoVeneno) {
+                // CENÁRIO A: MORTO
+                if (!MongeVivo) {
+                    addStep("Monge", `Monge (${nomeRealMonge})`, "👻", "bg-dead", `
+                    <div style="background:#546e7a; color:white; padding:15px; border-radius:8px; text-align:center; margin-top:10px;">
+                        <div style="font-size: 24px;">👻</div>
+                        <strong>VOCÊ ESTÁ MORTO</strong><br>
+                        <small>Fantasmas não podem usar habilidades noturnas, mas você ainda pode votar uma última vez no dia!</small>
+                    </div>
+                `);
+                }
+
+                // --- CENÁRIO B: PRIMEIRA NOITE SEM HABILIDADE ---
+                else if (isNightOne) {
+                    addAldeãoStep("Monge", `Monge (${nomeRealMonge})`, "🛡️", "bg-Aldeão", `
+                    <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
+                        ❌ Você não tem habilidade na primeira noite. <br>
+                    </div>
+                `);
+                }
+
+                // --- CENÁRIO C: AGUARDANDO PASSO ANTERIOR ---
+                else if (aguardandoVeneno && isNightPlus) {
                     addAldeãoStep("Monge", "Monge", "🛡️", "bg-Aldeão", `
-            <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
-                🧪 O Envenenador está agindo... <br>
-                Aguarde sua vez de proteger a vila.
-            </div>
-        `);
-                } else if (MongeProtectedPlayer) {
-                    const dadosAlvo = playersData.find(p => p.personagem === MongeProtectedPlayer);
-                    const nomeAlvo = dadosAlvo ? dadosAlvo.jogador : MongeProtectedPlayer;
+                    <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
+                        🧪 O Envenenador está agindo... <br>
+                        Aguarde sua vez de proteger a vila.
+                    </div>
+                `);
+
+                    // --- CENÁRIO D: JÁ ESCOLHEU ---
+                } else if (MongeProtectedRole && isNightPlus) {
+                    const dadosAlvo = playersData.find(p => p.personagem === MongeProtectedRole);
+                    const nomeAlvo = dadosAlvo ? dadosAlvo.jogador : MongeProtectedRole;
 
                     addAldeãoStep("Monge", `Monge (${nomeRealMonge})`, "🛡️", "bg-Aldeão", `
                     <div style="font-size:11px; color:#1E88E5; font-style:italic; margin-top: 5px; margin-bottom: 10px;">
                         Habilidade: Cada noite, escolha um jogador para proteger.
                     </div>
                     <div style="background:#1976D2; color:white; padding:10px; border-radius:5px; margin-top:10px; font-weight:bold; text-align:center;">
-                        🛡️ PROTEÇÃO ATIVA: ${nomeAlvo}
+                        🛡️ PROTEÇÃO ATIVA
                     </div>
                 `);
                 }
+
+                // --- CENÁRIO E: HABILIDADE ---
                 else {
                     // Fluxo normal caso o veneno já tenha sido definido
                     let options = '<option value="">Selecione o alvo...</option>';
@@ -1190,15 +1240,15 @@
                     });
 
                     addAldeãoStep("Monge", `Monge (${nomeRealMonge})`, "🛡️", "bg-Aldeão", `
-            <div style="font-size:11px; color:#1E88E5; font-style:italic; margin-top: 5px; margin-bottom: 10px;">
-                Habilidade: Cada noite (exceto a primeira), escolha um jogador. Se o Lobisomem o matar, ele não morre.
-            </div>
-            <div class="instruction">📢 "Monge, escolha quem proteger esta noite."</div>
-            <select id="Monge-protect-select" onchange="handleMongeProtect(this)">${options}</select>
-            <div id="Monge-feedback" style="font-size:12px; font-style:italic; color:grey; padding-top: 5px;">Aguardando seleção...</div>
-        `);
-                }
-            }
+                    <div style="font-size:11px; color:#1E88E5; font-style:italic; margin-top: 5px; margin-bottom: 10px;">
+                        Habilidade: Cada noite (exceto a primeira), escolha um jogador. Se o Lobisomem o matar, ele não morre.
+                    </div>
+                    <div class="instruction">📢 "Monge, escolha quem proteger esta noite."</div>
+                    <select id="Monge-protect-select" onchange="handleMongeProtect(this)">${options}</select>
+                    <div id="Monge-feedback" style="font-size:12px; font-style:italic; color:grey; padding-top: 5px;">Aguardando seleção...</div>
+                `);
+                };
+            };
 
             // --- NARRADOR ---
             if (rolesInPlay.includes("Monge") && MongeVivo && isNightPlus && loginJogador == "NARRADOR") {
@@ -1215,10 +1265,10 @@
                 <div class="instruction">📢 "Monge está escolhendo no dispositivo dele..."</div>
                 <div style="background: #e3f2fd; padding: 10px; border-radius: 5px; margin-top: 10px; border-left: 5px solid #2196F3;">
                     <strong>Protegido selecionado: </strong> 
-                    <span id="protection-val" style="font-weight: bold; color: #d32f2f;">${MongeProtectedPlayer}</span>
+                    <span id="protection-val" style="font-weight: bold; color: #d32f2f;">${MongeProtectedRole}</span>
                 </div>
         `);
-            }
+            };
 
 
             // --- LOBISOMEM ---
@@ -1234,17 +1284,18 @@
             const dadosLobisomem = playersData.find(p => p.personagem === "Lobisomem");
             const nomeRealLobisomem = dadosLobisomem.jogador;
 
+            // --- NOITE 1 (Informação e Bluffs) ---
             if (isNightOne && (loginPersonagem == "Lobisomem" || loginJogador == "NARRADOR")) {
-                // --- VERSÃO NOITE 1 (Informação e Bluffs) ---
                 addStep("Lobisomem", `Lobisomem (${nomeRealLobisomem})`, "🐺", "bg-demon", `
-            <div style="font-size:11px; color:#C62828; font-style:italic; margin-top: 5px; margin-bottom: 10px;">
-                Habilidade: Cada noite (exceto a primeira), escolha um jogador para morrer. Se você se matar, um minion se torna o Lobisomem.
-            </div>
-            <div class="instruction">📢 "Lobisomem, abaixo há 3 opções de blefes de personagens que não estão em jogo."</div>
-            <div class="instruction italic">👉 Blefes:</div>
-            <div style="background:#B71C1C; color:white; padding:10px; border-radius:5px; text-align:center; font-weight:bold;">${bluffs}</div>
-            
-        `);
+                <div style="font-size:11px; color:#C62828; font-style:italic; margin-top: 5px; margin-bottom: 10px;">
+                    Habilidade: Cada noite (exceto a primeira), escolha um jogador para morrer. Se você se matar, um minion se torna o Lobisomem.
+                </div>
+                <div class="instruction">📢 "Lobisomem, abaixo há 3 opções de personagens que não estão em jogo."</div>
+                <div class="instruction italic">👉 Blefes:</div>
+                <div style="background:#B71C1C; color:white; padding:10px; border-radius:5px; text-align:center; font-weight:bold;">${bluffs}</div>
+                
+            `);
+            // --- NOITE 2 (Ataques) ---
             } else if (isNightPlus && (loginPersonagem == "Lobisomem" || loginJogador == "NARRADOR")) {
 
                 // Buscamos os dados do Lobisomem no topo para usar em todos os blocos
@@ -1254,11 +1305,11 @@
                 // 1. VERIFICAÇÃO: O Monge ainda está jogando?
                 if (aguardandoMonge) {
                     addStep("Lobisomem", `Lobisomem (${nomeRealLobisomem})`, "🐺", "bg-demon", `
-            <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
-                🛡️ O Monge está decidindo a proteção... <br>
-                Aguarde para realizar o ataque.
-            </div>
-        `);
+                    <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
+                        🛡️ O Monge está decidindo a proteção... <br>
+                        Aguarde para realizar o ataque.
+                    </div>
+                `);
                 }
                 // 2. VERIFICAÇÃO: O Lobisomem já realizou o ataque?
                 else if (typeof victimThisNight !== 'undefined' && victimThisNight) {
@@ -1266,13 +1317,13 @@
                     const nomeAlvo = dadosAlvo ? dadosAlvo.jogador : victimThisNight;
 
                     addStep("Lobisomem", `Lobisomem (${nomeRealLobisomem})`, "🐺", "bg-demon", `
-            <div style="font-size:11px; color:#B71C1C; font-style:italic; margin-top: 5px; margin-bottom: 10px;">
-                Habilidade: Cada noite, escolha um jogador para morrer.
-            </div>
-            <div style="background:#B71C1C; color:white; padding:10px; border-radius:5px; margin-top:10px; font-weight:bold; text-align:center;">
-                🩸 ALVO MARCADO: ${nomeAlvo}
-            </div>
-        `);
+                    <div style="font-size:11px; color:#B71C1C; font-style:italic; margin-top: 5px; margin-bottom: 10px;">
+                        Habilidade: Cada noite, escolha um jogador para morrer.
+                    </div>
+                    <div style="background:#B71C1C; color:white; padding:10px; border-radius:5px; margin-top:10px; font-weight:bold; text-align:center;">
+                        🩸 ALVO MARCADO: ${nomeAlvo}
+                    </div>
+                `);
                 }
                 // 3. CENÁRIO: Hora de escolher o alvo
                 else {
@@ -1283,16 +1334,16 @@
                     });
 
                     addStep("Lobisomem", `Lobisomem (${nomeRealLobisomem})`, "🐺", "bg-demon", `
-            <div style="font-size:11px; color:#B71C1C; font-style:italic; margin-top: 5px; margin-bottom: 10px;">
-                Habilidade: Cada noite (exceto a primeira), escolha um jogador para morrer. Se você se matar, um minion se torna o Lobisomem.
-            </div>
-            <div class="instruction">📢 "Lobisomem, escolha quem matar."</div>
-            <div class="instruction italic" style="margin-top: 15px;">👉 Mate alguém:</div>
-            <select id="lobisomem-kill-select" onchange="handleKill(this)">${options}</select>
-            <div id="immediate-kill-resolution" style="margin-top: 10px; padding: 10px; border-radius: 5px; text-align: center; font-weight: bold; background-color: #FAFAFA; color: #333;">
-                Aguardando escolha do Lobisomem...
-            </div>
-        `);
+                    <div style="font-size:11px; color:#B71C1C; font-style:italic; margin-top: 5px; margin-bottom: 10px;">
+                        Habilidade: Cada noite (exceto a primeira), escolha um jogador para morrer. Se você se matar, um minion se torna o Lobisomem.
+                    </div>
+                    <div class="instruction">📢 "Lobisomem, escolha quem matar."</div>
+                    <div class="instruction italic" style="margin-top: 15px;">👉 Mate alguém:</div>
+                    <select id="lobisomem-kill-select" onchange="handleKill(this)">${options}</select>
+                    <div id="immediate-kill-resolution" style="margin-top: 10px; padding: 10px; border-radius: 5px; text-align: center; font-weight: bold; background-color: #FAFAFA; color: #333;">
+                        Aguardando escolha do Lobisomem...
+                    </div>
+                `);
                 }
             }
 
@@ -1315,15 +1366,27 @@
 
 
             // --- ESPIÃO ---
-            if (rolesInPlay.includes("Espião") && EspiãoVivo && (isNightOne || isNightPlus) && (loginPersonagem == "Espião" || loginJogador == "NARRADOR")) {
+            if (rolesInPlay.includes("Espião") && (isNightOne || isNightPlus) && (loginPersonagem == "Espião" || loginJogador == "NARRADOR")) {
                 const dadosEspião = playersData.find(p => p.personagem === "Espião");
                 const nomeRealEspião = dadosEspião.jogador;
-                addAldeãoStep("Espião", `Espião (${nomeRealEspião})`, "🕵️", "bg-Espião", `
+                // --- CENÁRIO A: MORTO ---
+                if (!EspiãoVivo) {
+                    addStep("Espião", `Espião (${nomeRealEspião})`, "👻", "bg-dead", `
+                    <div style="background:#546e7a; color:white; padding:15px; border-radius:8px; text-align:center; margin-top:10px;">
+                        <div style="font-size: 24px;">👻</div>
+                        <strong>VOCÊ ESTÁ MORTO</strong><br>
+                        <small>Fantasmas não podem usar habilidades noturnas, mas você ainda pode votar uma última vez no dia!</small>
+                    </div>
+                `);
+                } else {
+                    // --- CENÁRIO B: HABILIDADE ---
+
+                    addAldeãoStep("Espião", `Espião (${nomeRealEspião})`, "🕵️", "bg-Espião", `
                 <div class="instruction" style="font-size: 10px;">Habilidade: Cada noite, você vê o grimório (relação de jogadores e personagens da partida).</div>
                 <div class="instruction">📢 "Espião, você é capaz de ver o Grimório (lista acima com todos os jogadores e personagens)."</div>
                 <div class="instruction italic">👉 Veja o grimório.</div>
-                
             `);
+                }
             }
 
             // --- Aldeão / Outsiders ---
@@ -1332,64 +1395,86 @@
 
             // --- LAVADEIRA ---
             // --- JOGADOR ---
-            if (rolesInPlay.includes("Lavadeira") && isNightOne && (loginPersonagem == "Lavadeira" || loginJogador == "NARRADOR")) {
+            if (rolesInPlay.includes("Lavadeira") && (isNightOne || isNightPlus) && (loginPersonagem == "Lavadeira" || loginJogador == "NARRADOR")) {
                 const dadosLavadeira = playersData.find(p => p.personagem === "Lavadeira");
                 const nomeRealLavadeira = dadosLavadeira ? dadosLavadeira.jogador : "Lavadeira";
+                const LavadeiraVivo = dadosLavadeira ? dadosLavadeira.vivo !== false : false;
 
-                // 1. ESTADO: AGUARDANDO
-                if (aguardandoVeneno || !selectedLavadeiraRole || !selectedLavadeiraRealPlayer || !selectedLavadeiraFakePlayer) {
-                    addAldeãoStep("Lavadeira", `Lavadeira (${nomeRealLavadeira})`, "🧺", "bg-Aldeão", `
-            <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
-                🧪 Os jogadores anteriores estão agindo... <br>
-                Aguarde para receber sua informação.
-            </div>
-        `);
+                // --- CENÁRIO A: MORTO ---
+                if (!LavadeiraVivo) {
+                    addStep("Lavadeira", `Lavadeira (${nomeRealLavadeira})`, "👻", "bg-dead", `
+                    <div style="background:#546e7a; color:white; padding:15px; border-radius:8px; text-align:center; margin-top:10px;">
+                        <div style="font-size: 24px;">👻</div>
+                        <strong>VOCÊ ESTÁ MORTO</strong><br>
+                        <small>Fantasmas não podem usar habilidades noturnas, mas você ainda pode votar uma última vez no dia!</small>
+                    </div>
+                `);
                 }
-                // 2. ESTADO: ENVENENADA
-                else if (personagemEnvenenado === "Lavadeira") {
+                // --- CENÁRIO B: AGUARDANDO ETAPAS ANTERIORES ---
+                else if (isNightOne && aguardandoVeneno || !selectedLavadeiraRole || !selectedLavadeiraRealPlayer || !selectedLavadeiraFakePlayer) {
+                    addAldeãoStep("Lavadeira", `Lavadeira (${nomeRealLavadeira})`, "🧺", "bg-Aldeão", `
+                    <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
+                        🧪 Os jogadores anteriores estão agindo... <br>
+                        Aguarde para receber sua informação.
+                    </div>
+                `);
+                }
+                // --- CENÁRIO C: ENVENENADO ---
+                else if (isNightOne && personagemEnvenenado === "Lavadeira") {
                     const opcoesFalsas = playersData
-                        .filter(p => p.tipo === "Aldeão" && p.personagem !== selectedLavadeiraRole)
+                        .filter(p => p.tipo === "Aldeão" && p.personagem !== selectedLavadeiraRole && p.personagem !== "Lavadeira")
                         .map(p => p.personagem); // Transforma a lista de jogadores em uma lista de nomes de personagens
 
-                    // 3. Sorteia um papel dessa lista filtrada. Se por acaso a lista estiver vazia, usa um padrão.
+                    // const papelFalso = opcoesFalsas.length > 0
+                    //     ? opcoesFalsas[Math.floor(Math.random() * opcoesFalsas.length)]
+                    //     : "Bibliotecário";
+
+                    const semente = selectedLavadeiraRole.length + selectedLavadeiraRealPlayer.length;
                     const papelFalso = opcoesFalsas.length > 0
-                        ? opcoesFalsas[Math.floor(Math.random() * opcoesFalsas.length)]
+                        ? opcoesFalsas[semente % opcoesFalsas.length]
                         : "Bibliotecário";
 
                     addAldeãoStep("Lavadeira", `Lavadeira (${nomeRealLavadeira})`, "🧺", "bg-Aldeão", `
-                    <div class="instruction" style="font-size: 10px;">Habilidade: Você começa sabendo que 1 de 2 jogadores é Aldeão.</div>
-                    <div style="background:#4A148C; color:white; padding:5px; border-radius:3px; font-size:9px; margin-bottom:10px; text-align:center;">⚠️ VOCÊ ESTÁ ENVENENADA (Informação Falsa)</div>
+                    <div class="instruction">📢 "${nomeRealLavadeira}, você começa sabendo de um aldeão, mas sem saber exatamente quem."</div>
                     <div class="instruction italic">👉 O personagem aldeão ${papelFalso} é ${selectedLavadeiraRealPlayer} ou ${selectedLavadeiraFakePlayer}.</div>
                     
                     <div style="display: flex; flex-direction: column; align-items: center; margin: 15px 0;">
-                        <div style="width: 100px; height: 100px; border-radius: 50%; background: radial-gradient(circle, #FCE4EC 0%, #F8BBD0 100%); border: 5px double #C2185B; display: flex; align-items: center; justify-content: center; text-align: center; padding: 10px; box-sizing: border-box;">
-                            <strong style="color: #880E4F; font-size: 13px;">${papelFalso}</strong>
+                        <div style="width: 110px; height: 110px; border-radius: 50%; background: radial-gradient(circle, #E8F5E9 0%, #C8E6C9 100%); border: 5px double #43A047; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); text-align: center; padding: 10px; box-sizing: border-box;">
+                            <strong id="Lavadeira-token-label" style="color: #1B5E20; font-size: 14px; font-family: 'serif';">${papelFalso}</strong>
                         </div>
                     </div>
                     <div class="instruction italic" style="text-align:center;">👉 Um destes jogadores é ${papelFalso}.</div>
                 `);
                 }
-                // 3. ESTADO: NORMAL
-                else {
+                // --- CENÁRIO D: HABILIDADE NORMAL ---
+                else if (isNightOne) {
                     const sorteio = Math.floor(Math.random() * 2);
                     let textoLavadeira = (sorteio === 0)
                         ? `👉 O personagem aldeão ${selectedLavadeiraRole} é ${selectedLavadeiraRealPlayer} ou ${selectedLavadeiraFakePlayer}.`
                         : `👉 O personagem aldeão ${selectedLavadeiraRole} é ${selectedLavadeiraFakePlayer} ou ${selectedLavadeiraRealPlayer}.`;
 
                     addAldeãoStep("Lavadeira", `Lavadeira (${nomeRealLavadeira})`, "🧺", "bg-Aldeão", `
-            <div class="instruction" style="font-size: 10px;">Habilidade: Você começa sabendo que 1 de 2 jogadores é Aldeão e qual o personagem.</div>
-            <div class="instruction">📢 "${nomeRealLavadeira}, você começa sabendo de um aldeão, mas sem saber exatamente quem."</div>
-            <div class="instruction italic">${textoLavadeira}</div>
-            <div style="display: flex; flex-direction: column; align-items: center; margin: 20px 0;">
-                <div style="width: 110px; height: 110px; border-radius: 50%; background: radial-gradient(circle, #E8F5E9 0%, #C8E6C9 100%); border: 5px double #43A047; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); text-align: center; padding: 10px; box-sizing: border-box;">
-                    <strong id="Lavadeira-token-label" style="color: #1B5E20; font-size: 14px; font-family: 'serif';">${selectedLavadeiraRole}</strong>
-                </div>
-                <div style="margin-top: 10px; font-size: 11px; color: #1E88E5; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">TOKEN DE UM ALDEÃO</div>
-            </div>
-            <div id="Lavadeira-info" style="margin-top: 10px;">
-                <div class="instruction italic">👉 Um destes jogadores é ${selectedLavadeiraRole}.</div>
-            </div>
-        `);
+                    <div class="instruction" style="font-size: 10px;">Habilidade: Você começa sabendo que 1 de 2 jogadores é Aldeão e qual o personagem.</div>
+                    <div class="instruction">📢 "${nomeRealLavadeira}, você começa sabendo de um aldeão, mas sem saber exatamente quem."</div>
+                    <div class="instruction italic">${textoLavadeira}</div>
+                    <div style="display: flex; flex-direction: column; align-items: center; margin: 20px 0;">
+                        <div style="width: 110px; height: 110px; border-radius: 50%; background: radial-gradient(circle, #E8F5E9 0%, #C8E6C9 100%); border: 5px double #43A047; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); text-align: center; padding: 10px; box-sizing: border-box;">
+                            <strong id="Lavadeira-token-label" style="color: #1B5E20; font-size: 14px; font-family: 'serif';">${selectedLavadeiraRole}</strong>
+                        </div>
+                        <div style="margin-top: 10px; font-size: 11px; color: #1E88E5; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">TOKEN DE UM ALDEÃO</div>
+                    </div>
+                    <div id="Lavadeira-info" style="margin-top: 10px;">
+                        <div class="instruction italic">👉 Um destes jogadores é ${selectedLavadeiraRole}.</div>
+                    </div>
+                `);
+                }
+                // --- CENÁRIO E: DEMAIS NOITES SEM HABILIDADE ---
+                else if (isNightPlus) {
+                    addAldeãoStep("Lavadeira", `Lavadeira (${nomeRealLavadeira})`, "🧺", "bg-Aldeão", `
+                    <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
+                        ❌ Você não tem habilidade nas demais noites. <br>
+                    </div>
+                `);
                 }
             }
 
@@ -1410,7 +1495,7 @@
 
                 addAldeãoStep("Lavadeira", `Lavadeira (${nomeRealLavadeira})`, "🧺", tfColor, `
                 <div class="instruction" style="font-size: 10px;">Habilidade: Você começa sabendo que 1 de 2 jogadores é Aldeão e qual o personagem.</div>
-                <div class="instruction italic">👉 Lavadeira, ${selectedBibliotecárioRole} é o ${selectedBibliotecárioRealPlayer} ou o ${selectedBibliotecárioFakePlayer}.
+                <div class="instruction italic">👉 Lavadeira, ${selectedLavadeiraRole} é o ${selectedLavadeiraRealPlayer} ou o ${selectedLavadeiraFakePlayer}.
                 <div class="instruction italic">👉 Narrador, escolha um personagem Aldeão específico que está em jogo (ex: quero mostrar a Lavadeira):</div>
                 <select style="border-color:${azul};" onchange="updateLavadeiraInfo(this.value)">
                     <option value="">Selecione o Personagem...</option>
@@ -1441,7 +1526,7 @@
                 </div>
                 
                 <div id="Lavadeira-info" style="margin-top: 10px;">
-                    <div class="instruction italic">👉 Estes dois nomes aparecerão para a Lavadeira, informando que um é ${selectedLavadeiraRole} DENTRO DO HTML NÃO ATUALIZA.</div>
+                    <div class="instruction italic">👉 Estes dois nomes aparecerão para a Lavadeira, informando que um é ${selectedLavadeiraRole}, exceto se envenenado.</div>
                 </div>
                 
         `);
@@ -1449,64 +1534,92 @@
 
             // --- BIBLIOTECÁRIO ---
             // --- JOGADOR ---
-            if (rolesInPlay.includes("Bibliotecário") && isNightOne && (loginPersonagem == "Bibliotecário" || loginJogador == "NARRADOR")) {
+            if (rolesInPlay.includes("Bibliotecário") && (isNightOne || isNightPlus) && (loginPersonagem == "Bibliotecário" || loginJogador == "NARRADOR")) {
                 const dadosBibliotecário = playersData.find(p => p.personagem === "Bibliotecário");
                 const nomeRealBibliotecário = dadosBibliotecário ? dadosBibliotecário.jogador : "Bibliotecário";
+                const BibliotecárioVivo = dadosBibliotecário ? dadosBibliotecário.vivo !== false : false;
 
-                // 1. ESTADO: AGUARDANDO (Sincronização com ações anteriores)
-                if (aguardandoVeneno || !selectedBibliotecárioRole || !selectedBibliotecárioRealPlayer || !selectedBibliotecárioFakePlayer) {
-                    addAldeãoStep("Bibliotecário", `Bibliotecário (${nomeRealBibliotecário})`, "📚", "bg-Aldeão", `
-            <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
-                📖 Consultando os arquivos da vila... <br>
-                Aguarde para receber sua informação.
-            </div>
-        `);
+                // --- CENÁRIO A: MORTO ---
+                if (!BibliotecárioVivo) {
+                    addStep("Bibliotecário", `Bibliotecário (${nomeRealBibliotecário})`, "👻", "bg-dead", `
+                    <div style="background:#546e7a; color:white; padding:15px; border-radius:8px; text-align:center; margin-top:10px;">
+                        <div style="font-size: 24px;">👻</div>
+                        <strong>VOCÊ ESTÁ MORTO</strong><br>
+                        <small>Fantasmas não podem usar habilidades noturnas, mas você ainda pode votar uma última vez no dia!</small>
+                    </div>
+                `);
                 }
-                // 2. ESTADO: ENVENENADO (Informação Falsa)
-                else if (personagemEnvenenado === "Bibliotecário") {
+
+                // --- CENÁRIO B: AGUARDANDO ETAPAS ANTERIORES ---
+                else if (isNightOne && aguardandoVeneno || !selectedBibliotecárioRole || !selectedBibliotecárioRealPlayer || !selectedBibliotecárioFakePlayer) {
+                    addAldeãoStep("Bibliotecário", `Bibliotecário (${nomeRealBibliotecário})`, "📚", "bg-Aldeão", `
+                    <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
+                        📖 Consultando os arquivos da vila... <br>
+                        Aguarde para receber sua informação.
+                    </div>
+                `);
+                }
+
+                // --- CENÁRIO C: ENVENENADO ---
+                else if (isNightOne && personagemEnvenenado === "Bibliotecário") {
                     const opcoesFalsas = playersData
-                        .filter(p => p.tipo === "Forasteiro" && p.personagem !== selectedBibliotecárioRole)
+                        .filter(p => p.tipo === "Forasteiro" && p.personagem !== selectedBibliotecárioRole && p.personagem !== "Bibliotecário")
                         .map(p => p.personagem);
 
+                    // const papelFalso = opcoesFalsas.length > 0
+                    //     ? opcoesFalsas[Math.floor(Math.random() * opcoesFalsas.length)]
+                    //     : "Bêbado";
+
+                    const semente = selectedBibliotecárioRole.length + selectedBibliotecárioRealPlayer.length;
                     const papelFalso = opcoesFalsas.length > 0
-                        ? opcoesFalsas[Math.floor(Math.random() * opcoesFalsas.length)]
+                        ? opcoesFalsas[semente % opcoesFalsas.length]
                         : "Bêbado";
 
                     addAldeãoStep("Bibliotecário", `Bibliotecário (${nomeRealBibliotecário})`, "📚", "bg-Aldeão", `
-            <div class="instruction" style="font-size: 10px;">Habilidade: Você começa sabendo que 1 de 2 jogadores é um Forasteiro.</div>
-            <div class="instruction">📢 "${nomeRealBibliotecário}, você localizou um forasteiro nos registros."</div>
-            <div class="instruction italic">👉 O personagem forasteiro ${papelFalso} é ${selectedBibliotecárioRealPlayer} ou ${selectedBibliotecárioFakePlayer}.</div>
-            
-            <div style="display: flex; flex-direction: column; align-items: center; margin: 20px 0;">
-                <div style="width: 110px; height: 110px; border-radius: 50%; background: radial-gradient(circle, #E3F2FD 0%, #BBDEFB 100%); border: 5px double #1E88E5; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); text-align: center; padding: 10px; box-sizing: border-box;">
-                    <strong id="Bibliotecário-token-label" style="color: #0D47A1; font-size: 14px; font-family: 'serif';">${papelFalso}</strong>
-                </div>
-                <div style="margin-top: 10px; font-size: 11px; color: #1E88E5; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">TOKEN DE UM FORASTEIRO</div>
-            </div>
-            <div class="instruction italic" style="text-align:center;">👉 Um destes jogadores é ${papelFalso}.</div>
-        `);
+                    <div class="instruction" style="font-size: 10px;">Habilidade: Você começa sabendo que 1 de 2 jogadores é um Forasteiro.</div>
+                    <div class="instruction">📢 "${nomeRealBibliotecário}, você localizou um forasteiro nos registros."</div>
+                    <div class="instruction italic">👉 O personagem forasteiro ${papelFalso} é ${selectedBibliotecárioRealPlayer} ou ${selectedBibliotecárioFakePlayer}.</div>
+                    
+                    <div style="display: flex; flex-direction: column; align-items: center; margin: 20px 0;">
+                        <div style="width: 110px; height: 110px; border-radius: 50%; background: radial-gradient(circle, #E3F2FD 0%, #BBDEFB 100%); border: 5px double #1E88E5; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); text-align: center; padding: 10px; box-sizing: border-box;">
+                            <strong id="Bibliotecário-token-label" style="color: #0D47A1; font-size: 14px; font-family: 'serif';">${papelFalso}</strong>
+                        </div>
+                        <div style="margin-top: 10px; font-size: 11px; color: #1E88E5; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">TOKEN DE UM FORASTEIRO</div>
+                    </div>
+                    <div class="instruction italic" style="text-align:center;">👉 Um destes jogadores é ${papelFalso}.</div>
+                `);
                 }
-                // 3. ESTADO: NORMAL
-                else {
+
+                // --- CENÁRIO D: HABILIDADE NORMAL ---
+                else if (isNightOne) {
                     const sorteio = Math.floor(Math.random() * 2);
                     let textoBibliotecário = (sorteio === 0)
                         ? `👉 O personagem forasteiro ${selectedBibliotecárioRole} é ${selectedBibliotecárioRealPlayer} ou ${selectedBibliotecárioFakePlayer}.`
                         : `👉 O personagem forasteiro ${selectedBibliotecárioRole} é ${selectedBibliotecárioFakePlayer} ou ${selectedBibliotecárioRealPlayer}.`;
 
                     addAldeãoStep("Bibliotecário", `Bibliotecário (${nomeRealBibliotecário})`, "📚", "bg-Aldeão", `
-            <div class="instruction" style="font-size: 10px;">Habilidade: Você começa sabendo que 1 de 2 jogadores é um Forasteiro e qual o personagem.</div>
-            <div class="instruction">📢 "${nomeRealBibliotecário}, você localizou um forasteiro nos registros."</div>
-            <div class="instruction italic">${textoBibliotecário}</div>
-            <div style="display: flex; flex-direction: column; align-items: center; margin: 20px 0;">
-                <div style="width: 110px; height: 110px; border-radius: 50%; background: radial-gradient(circle, #E3F2FD 0%, #BBDEFB 100%); border: 5px double #1E88E5; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); text-align: center; padding: 10px; box-sizing: border-box;">
-                    <strong id="Bibliotecário-token-label" style="color: #0D47A1; font-size: 14px; font-family: 'serif';">${selectedBibliotecárioRole}</strong>
-                </div>
-                <div style="margin-top: 10px; font-size: 11px; color: #1E88E5; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">TOKEN DE UM FORASTEIRO</div>
-            </div>
-            <div id="Bibliotecário-info" style="margin-top: 10px;">
-                <div class="instruction italic" style="text-align:center;">👉 Um destes jogadores é o ${selectedBibliotecárioRole}.</div>
-            </div>
-        `);
+                    <div class="instruction" style="font-size: 10px;">Habilidade: Você começa sabendo que 1 de 2 jogadores é um Forasteiro e qual o personagem.</div>
+                    <div class="instruction">📢 "${nomeRealBibliotecário}, você localizou um forasteiro nos registros."</div>
+                    <div class="instruction italic">${textoBibliotecário}</div>
+                    <div style="display: flex; flex-direction: column; align-items: center; margin: 20px 0;">
+                        <div style="width: 110px; height: 110px; border-radius: 50%; background: radial-gradient(circle, #E3F2FD 0%, #BBDEFB 100%); border: 5px double #1E88E5; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); text-align: center; padding: 10px; box-sizing: border-box;">
+                            <strong id="Bibliotecário-token-label" style="color: #0D47A1; font-size: 14px; font-family: 'serif';">${selectedBibliotecárioRole}</strong>
+                        </div>
+                        <div style="margin-top: 10px; font-size: 11px; color: #1E88E5; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">TOKEN DE UM FORASTEIRO</div>
+                    </div>
+                    <div id="Bibliotecário-info" style="margin-top: 10px;">
+                        <div class="instruction italic" style="text-align:center;">👉 Um destes jogadores é o ${selectedBibliotecárioRole}.</div>
+                    </div>
+                `);
+                }
+
+                // --- CENÁRIO E: DEMAIS NOITES SEM HABILIDADE ---
+                else if (isNightPlus) {
+                    addAldeãoStep("Bibliotecário", `Bibliotecário (${nomeRealBibliotecário})`, "📚", "bg-Aldeão", `
+                    <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
+                        ❌ Você não tem habilidade nas demais noites. <br>
+                    </div>
+                `);
                 }
             }
 
@@ -1578,71 +1691,100 @@
         `);
             }
 
-            // --- INVESTIGATOR ---
+            // --- INVESTIGADOR ---
             // --- JOGADOR ---
-            if (rolesInPlay.includes("Investigador") && isNightOne && (loginPersonagem == "Investigador" || loginJogador == "NARRADOR")) {
+            if (rolesInPlay.includes("Investigador") && (isNightOne || isNightPlus) && (loginPersonagem == "Investigador" || loginJogador == "NARRADOR")) {
                 const dadosInvestigador = playersData.find(p => p.personagem === "Investigador");
                 const nomeRealInvestigador = dadosInvestigador ? dadosInvestigador.jogador : "Investigador";
+                const InvestigadorVivo = dadosInvestigador ? dadosInvestigador.vivo !== false : false;
 
-                // 1. ESTADO: AGUARDANDO
-                if (aguardandoVeneno || !selectedInvestigadorRole || !selectedInvestigadorRealPlayer || !selectedInvestigadorFakePlayer) {
-                    addAldeãoStep("Investigador", `Investigador (${nomeRealInvestigador})`, "🔍", "bg-Aldeão", `
-            <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
-                Os jogadores anteriores estão agindo... <br>
-                Aguarde para receber sua informação.
-            </div>
-        `);
+                // --- CENÁRIO A: MORTO ---
+                if (!InvestigadorVivo) {
+                    addStep("Investigador", `Investigador (${nomeRealInvestigador})`, "👻", "bg-dead", `
+                    <div style="background:#546e7a; color:white; padding:15px; border-radius:8px; text-align:center; margin-top:10px;">
+                        <div style="font-size: 24px;">👻</div>
+                        <strong>VOCÊ ESTÁ MORTO</strong><br>
+                        <small>Fantasmas não podem usar habilidades noturnas, mas você ainda pode votar uma última vez no dia!</small>
+                    </div>
+                `);
                 }
-                // 2. ESTADO: ENVENENADO
-                else if (personagemEnvenenado === "Investigador") {
+
+                // --- CENÁRIO B: AGUARDANDO ETAPAS ANTERIORES ---
+                else if (isNightOne && aguardandoVeneno || !selectedInvestigadorRole || !selectedInvestigadorRealPlayer || !selectedInvestigadorFakePlayer) {
+                    addAldeãoStep("Investigador", `Investigador (${nomeRealInvestigador})`, "🔍", "bg-Aldeão", `
+                    <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
+                        🔍 Realizando investigação na vila... <br>
+                        Aguarde para receber sua informação.
+                    </div>
+                `);
+                }
+
+                // --- CENÁRIO C: ENVENENADO ---
+                else if (isNightOne && personagemEnvenenado === "Investigador") {
                     // Filtra personagens do tipo Lacaio/Minion que não são o real para mentir
                     const opcoesFalsas = playersData
-                        .filter(p => p.tipo === "Minion" && p.personagem !== selectedInvestigadorRole)
+                        .filter(p => p.tipo === "Minion" && p.personagem !== selectedInvestigadorRole && p.personagem !== "Investigador")
                         .map(p => p.personagem);
 
+                    // const papelFalso = opcoesFalsas.length > 0
+                    //     ? opcoesFalsas[Math.floor(Math.random() * opcoesFalsas.length)]
+                    //     : "Barão";
+
+                    const semente = selectedInvestigadorRole.length + selectedInvestigadorRealPlayer.length;
                     const papelFalso = opcoesFalsas.length > 0
-                        ? opcoesFalsas[Math.floor(Math.random() * opcoesFalsas.length)]
+                        ? opcoesFalsas[semente % opcoesFalsas.length]
                         : "Barão";
 
                     addAldeãoStep("Investigador", `Investigador (${nomeRealInvestigador})`, "🔍", "bg-Aldeão", `
-            <div class="instruction" style="font-size: 10px;">Habilidade: Você começa sabendo que 1 de 2 jogadores é um Minion.</div>
-            <div class="instruction">📢 "${nomeRealInvestigador}, você descobriu um Minion nas investigações."</div>
-            <div class="instruction italic">👉 O personagem minion ${papelFalso} é ${selectedInvestigadorRealPlayer} ou ${selectedInvestigadorFakePlayer}.</div>
-            
-            <div style="display: flex; flex-direction: column; align-items: center; margin: 20px 0;">
-                <div style="width: 110px; height: 110px; border-radius: 50%; background: radial-gradient(circle, #FFEBEE 0%, #FFCDD2 100%); border: 5px double #E53935; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); text-align: center; padding: 10px; box-sizing: border-box;">
-                    <strong id="Investigador-token-label" style="color: #B71C1C; font-size: 14px; font-family: 'serif';">${papelFalso}</strong>
-                </div>
-                <div style="margin-top: 10px; font-size: 11px; color: #E53935; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">TOKEN DE UM MINION</div>
-            </div>
-            <div id="Investigador-info" style="margin-top: 10px;">
-                <div class="instruction italic" style="text-align:center;">👉 Um destes jogadores é ${papelFalso}.</div>
-            </div>
-        `);
+                    <div class="instruction" style="font-size: 10px;">Habilidade: Você começa sabendo que 1 de 2 jogadores é um Minion.</div>
+                    <div class="instruction">📢 "${nomeRealInvestigador}, você descobriu um Minion nas investigações."</div>
+                    <div class="instruction italic">👉 O personagem minion ${papelFalso} é ${selectedInvestigadorRealPlayer} ou ${selectedInvestigadorFakePlayer}.</div>
+                    
+                    <div style="display: flex; flex-direction: column; align-items: center; margin: 20px 0;">
+                        <div style="width: 110px; height: 110px; border-radius: 50%; background: radial-gradient(circle, #FFEBEE 0%, #FFCDD2 100%); border: 5px double #E53935; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); text-align: center; padding: 10px; box-sizing: border-box;">
+                            <strong id="Investigador-token-label" style="color: #B71C1C; font-size: 14px; font-family: 'serif';">${papelFalso}</strong>
+                        </div>
+                        <div style="margin-top: 10px; font-size: 11px; color: #E53935; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">TOKEN DE UM MINION</div>
+                    </div>
+                    <div id="Investigador-info" style="margin-top: 10px;">
+                        <div class="instruction italic" style="text-align:center;">👉 Um destes jogadores é ${papelFalso}.</div>
+                    </div>
+                `);
                 }
-                // 3. ESTADO: NORMAL
-                else {
+
+                // --- CENÁRIO D: HABILIDADE NORMAL ---
+                else if (isNightOne) {
                     const sorteio = Math.floor(Math.random() * 2);
                     let textoInvestigador = (sorteio === 0)
                         ? `👉 O personagem minion ${selectedInvestigadorRole} é ${selectedInvestigadorRealPlayer} ou ${selectedInvestigadorFakePlayer}.`
                         : `👉 O personagem minion ${selectedInvestigadorRole} é ${selectedInvestigadorFakePlayer} ou ${selectedInvestigadorRealPlayer}.`;
 
                     addAldeãoStep("Investigador", `Investigador (${nomeRealInvestigador})`, "🔍", "bg-Aldeão", `
-            <div class="instruction" style="font-size: 10px;">Habilidade: Você começa sabendo que 1 de 2 jogadores é um Minion e qual o personagem.</div>
-            <div class="instruction">📢 "${nomeRealInvestigador}, você descobriu um Minion nas investigações."</div>
-            <div class="instruction italic">${textoInvestigador}</div>
-            
-            <div style="display: flex; flex-direction: column; align-items: center; margin: 20px 0;">
-                <div style="width: 110px; height: 110px; border-radius: 50%; background: radial-gradient(circle, #FFEBEE 0%, #FFCDD2 100%); border: 5px double #E53935; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); text-align: center; padding: 10px; box-sizing: border-box;">
-                    <strong id="Investigador-token-label" style="color: #B71C1C; font-size: 14px; font-family: 'serif';">${selectedInvestigadorRole}</strong>
-                </div>
-                <div style="margin-top: 10px; font-size: 11px; color: #E53935; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">TOKEN DE UM MINION</div>
-            </div>
-            <div id="Investigador-info" style="margin-top: 10px;">
-                <div class="instruction italic" style="text-align:center;">👉 Um destes jogadores é ${selectedInvestigadorRole}.</div>
-            </div>
-        `);
+                    <div class="instruction" style="font-size: 10px;">Habilidade: Você começa sabendo que 1 de 2 jogadores é um Minion e qual o personagem.</div>
+                    <div class="instruction">📢 "${nomeRealInvestigador}, você descobriu um Minion nas investigações."</div>
+                    <div class="instruction italic">${textoInvestigador}</div>
+                    
+                    <div style="display: flex; flex-direction: column; align-items: center; margin: 20px 0;">
+                        <div style="width: 110px; height: 110px; border-radius: 50%; background: radial-gradient(circle, #FFEBEE 0%, #FFCDD2 100%); border: 5px double #E53935; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); text-align: center; padding: 10px; box-sizing: border-box;">
+                            <strong id="Investigador-token-label" style="color: #B71C1C; font-size: 14px; font-family: 'serif';">${selectedInvestigadorRole}</strong>
+                        </div>
+                        <div style="margin-top: 10px; font-size: 11px; color: #E53935; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">TOKEN DE UM MINION</div>
+                    </div>
+                    <div id="Investigador-info" style="margin-top: 10px;">
+                        <div class="instruction italic" style="text-align:center;">👉 Um destes jogadores é ${selectedInvestigadorRole}.</div>
+                    </div>
+                `);
                 }
+
+                // --- CENÁRIO E: DEMAIS NOITES SEM HABILIDADE ---
+                else if (isNightPlus) {
+                    addAldeãoStep("Investigador", `Investigador (${nomeRealInvestigador})`, "🔍", "bg-Aldeão", `
+                    <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
+                        ❌ Você não tem habilidade nas demais noites. <br>
+                    </div>
+                `);
+                }
+
             }
 
             // --- NARRADOR ---
@@ -1703,126 +1845,367 @@
             `);
             }
 
-            // --- Guardião ---
-            if (rolesInPlay.includes("Guardião") && isNightPlus && (loginPersonagem == "Guardião" || loginJogador == "NARRADOR")) {
-                let GuardiãoOptions = '<option value="">Quem investigar? (quem foi apontado)</option>';
-                playersData.forEach(p => {
-                    GuardiãoOptions += `<option value="${p.personagem}">${p.jogador}</option>`;
-                });
+            // --- GUARDIÃO ---
+            if (rolesInPlay.includes("Guardião") && (isNightOne || isNightPlus) && (loginPersonagem == "Guardião" || loginJogador == "NARRADOR")) {
                 const dadosGuardião = playersData.find(p => p.personagem === "Guardião");
                 const nomeRealGuardião = dadosGuardião.jogador;
-                addAldeãoStep("Guardião", `Guardião (${nomeRealGuardião})`, "🦅", "bg-Aldeão", `
-                <div style="font-size:11px; color:#1E88E5; font-style:italic; margin-top: 5px; margin-bottom: 10px;">
-                    Habilidade: Se você morrer à noite, você é acordado para escolher um jogador: você aprende o personagem dele.
-                </div>
-                <div class="instruction italic">👉 O Guardião aponta para um jogador:</div>
-                <select onchange="updateGuardiãoInfo(this.value)">${GuardiãoOptions}</select>
-                <div id="Guardião-info" style="margin-top: 10px;"></div>
-            `);
+                const GuardiãoVivo = dadosGuardião ? dadosGuardião.vivo !== false : false;
 
-                // Esconde o passo inicialmente
-                document.getElementById('step-Guardião').style.display = 'none';
+                // --- CENÁRIO A: MORTO ---
+                if (!GuardiãoVivo) {
+                    addStep("Guardião", `Guardião (${nomeRealGuardião})`, "👻", "bg-dead", `
+                    <div style="background:#546e7a; color:white; padding:15px; border-radius:8px; text-align:center; margin-top:10px;">
+                        <div style="font-size: 24px;">👻</div>
+                        <strong>VOCÊ ESTÁ MORTO</strong><br>
+                        <small>Fantasmas não podem usar habilidades noturnas, mas você ainda pode votar uma última vez no dia!</small>
+                    </div>
+                `);
+                }
+
+                // --- CENÁRIO B: PRIMEIRA NOITE SEM HABILIDADE ---
+                else if (isNightOne) {
+                    addAldeãoStep("Guardião", `Guardião (${nomeRealGuardião})`, "🦅", "bg-Aldeão", `
+                    <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
+                        ❌ Você não tem habilidade na primeira noite. <br>
+                    </div>
+                `);
+                }
+
+                // --- CENÁRIO C: AGUARDANDO ETAPAS ANTERIORES ---
+                else if (isNightPlus && aguardandoLobisomem) {
+                    addAldeãoStep("Guardião", `Guardião (${nomeRealGuardião})`, "🦅", "bg-Aldeão", `
+                    <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
+                        Aguarde para receber sua informação....<br>
+                    </div>
+                `);
+                }
+
+
+                // --- CENÁRIO D: ESCOLHA REALIZADA (AVALIAÇÃO SE ENVENENADO) ---
+                else if (selectedGuardiãoRole) {
+                    const dadosAlvo = playersData.find(p => p.personagem === selectedGuardiãoRole);
+                    const nomeAlvo = dadosAlvo ? dadosAlvo.jogador : "Alvo";
+                    let personagemParaExibir = dadosAlvo ? dadosAlvo.personagem : selectedGuardiãoRole;
+
+                    // Lógica de Envenenamento
+                    if (personagemEnvenenado === "Guardião") {
+                        const opcoesFalsas = playersData
+                            .filter(p => p.personagem !== selectedGuardiãoRole && p.personagem !== "Guardião")
+                            .map(p => p.personagem);
+
+                        const semente = selectedGuardiãoRole.length;
+                        personagemParaExibir = opcoesFalsas.length > 0
+                            ? opcoesFalsas[semente % opcoesFalsas.length]
+                            : "Espião";
+                    }
+
+                    // Renderização Única (Evita repetir o HTML duas vezes)
+                    addAldeãoStep("Guardião", `Guardião (${nomeRealGuardião})`, "🦅", "bg-Aldeão", `
+                        <div style="font-size:11px; color:#1E88E5; font-style:italic; margin-top: 5px; margin-bottom: 10px;">
+                            Habilidade: Se você morrer à noite, você é acordado para escolher um jogador: você aprende o personagem dele.
+                        </div>
+                        <div style="background:#4A148C; color:#E1BEE7; padding:15px; border: 1px solid #7B1FA2; border-radius:8px; margin-top:10px; font-weight:bold; text-align:center; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+                            <div style="font-size: 20px; margin-bottom: 5px;">🦅</div>
+                            VISÃO PÓSTUMA DE ${nomeAlvo.toUpperCase()}:<br>
+                            <span style="color: white; font-size: 1.1em;">${personagemParaExibir.toUpperCase()}</span>
+                        </div>
+                    `);
+                }
+
+                // --- CENÁRIO E: HABILIDADE NORMAL ---
+                else if (isNightPlus && victimThisNight == "Guardião" && (MongeProtectedRole !== victimThisNight || personagemEnvenenado === "Monge")) {
+                    // TENHO QUE ADICIONAR UM IF. SE O MONGE ESTIVER VIVO, SE O ENVENENADOR ESTIVER VIVO
+                    let GuardiãoOptions = '<option value="">Quem revelar personagem?</option>';
+                    playersData.forEach(p => {
+                        GuardiãoOptions += `<option value="${p.personagem}">${p.jogador}</option>`;
+                    });
+
+                    addAldeãoStep("Guardião", `Guardião (${nomeRealGuardião})`, "🦅", "bg-Aldeão", `
+                    <div style="font-size:11px; color:#1E88E5; font-style:italic; margin-top: 5px; margin-bottom: 10px;">
+                        Habilidade: Se você morrer à noite, você é acordado para escolher um jogador: você aprende o personagem dele.
+                    </div>
+                    <div class="instruction"> ${nomeRealGuardião}, você está morrendo. 🩸🩸🩸</div>
+                    <div class="instruction italic">📢 "Escolha um jogador para aprender seu personagem.</div>
+                    <select onchange="updateGuardiãoInfo(this)">${GuardiãoOptions}</select>
+                    <div id="Guardião-info" style="margin-top: 10px;"></div>
+                    `);
+
+                }
+
             }
+
+
 
             // --- COVEIRO ---
-            if (rolesInPlay.includes("Coveiro") && CoveiroVivo && isNightPlus && (loginPersonagem == "Coveiro" || loginJogador == "NARRADOR")) {
+            if (rolesInPlay.includes("Coveiro") && (isNightOne || isNightPlus) && (loginPersonagem == "Coveiro" || loginJogador == "NARRADOR")) {
                 const dadosCoveiro = playersData.find(p => p.personagem === "Coveiro");
                 const nomeRealCoveiro = dadosCoveiro.jogador;
+                const CoveiroVivo = dadosCoveiro ? dadosCoveiro.vivo !== false : false;
 
-                // Nome e personagem do jogador morto
-                // Busca o objeto do jogador pelo nome
-                const jogadorEncontrado = playersData.find(p => p.jogador === ultimoExecutado);
-
-                // Pega o personagem dele (ajuste o nome da propriedade conforme seu Firebase, ex: .personagem ou .role)
-                const personagemultimoExecutado = jogadorEncontrado ? jogadorEncontrado.personagem : "Não encontrado";
-
-                addAldeãoStep("Coveiro", `Coveiro (${nomeRealCoveiro})`, "⚰️", tfColor, `
-            <div style="font-size:11px; color:#1E88E5; font-style:italic; margin-top: 5px; margin-bottom: 10px;">
-                    Habilidade: Cada noite (exceto a primeira), você aprende qual personagem morreu hoje por execução.
-            </div>
-            <div id="Coveiro-info" style="
-                margin-top: 10px; 
-                padding: 20px; 
-                background: #ECEFF1; 
-                border-radius: 12px; 
-                border: 1px solid #CFD8DC; 
-                text-align: center;
-                position: relative;
-                overflow: hidden;">
-                
-                <div style="position: absolute; top: 50%; left: 80%; transform: translate(-50%, -50%); font-size: 80px; opacity: 0.7; pointer-events: none;">
-                    💀
-                </div>
-                <div style="position: absolute; top: 50%; left: 20%; transform: translate(-50%, -50%); font-size: 80px; opacity: 0.7; pointer-events: none;">
-                🪦
-                </div>
-
-                <div style="position: relative; z-index: 1;">
-                    <div style="font-size: 1.1em; color: #546E7A; margin-bottom: 5px;">O executado foi:</div>
-                    <div style="font-size: 1.5em; font-weight: bold; color: #263238;">
-                        ${personagemultimoExecutado}
+                // --- CENÁRIO A: MORTO ---
+                if (!CoveiroVivo || (victimThisNight === "Coveiro" && (MongeProtectedRole !== victimThisNight || personagemEnvenenado === "Monge"))) {
+                    addStep("Coveiro", `Coveiro (${nomeRealCoveiro})`, "👻", "bg-dead", `
+                    <div style="background:#546e7a; color:white; padding:15px; border-radius:8px; text-align:center; margin-top:10px;">
+                        <div style="font-size: 24px;">👻</div>
+                        <strong>VOCÊ ESTÁ MORTO</strong><br>
+                        <small>Fantasmas não podem usar habilidades noturnas, mas você ainda pode votar uma última vez no dia!</small>
                     </div>
-                    <div style="font-size: 0.9em; color: #78909C; margin-top: 5px;">(${ultimoExecutado})</div>
-                </div>
-            </div>
-            `);
+                `);
+                }
+
+                // --- CENÁRIO B: PRIMEIRA NOITE SEM HABILIDADE ---
+                else if (isNightOne) {
+                    addAldeãoStep("Coveiro", `Coveiro (${nomeRealCoveiro})`, "⚰️", "bg-Aldeão", `
+                    <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
+                        ❌ Você não tem habilidade na primeira noite. <br>
+                    </div>
+                `);
+                }
+
+                // --- CENÁRIO C: AGUARDANDO ETAPAS ANTERIORES ---
+                else if (isNightPlus && aguardandoLobisomem) {
+                    addAldeãoStep("Coveiro", `Coveiro (${nomeRealCoveiro})`, "⚰️", "bg-Aldeão", `
+                    <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
+                        ⚰️ Preparando a cova... <br>
+                        Aguarde para receber sua informação.
+                    </div>
+                `);
+                }
+
+                // --- CENÁRIO D: ENVENENADO ---
+                else if (isNightPlus && personagemEnvenenado === "Coveiro") {
+                    const jogadorEncontrado = playersData.find(p => p.jogador === ultimoExecutado);
+                    const personagemultimoExecutado = jogadorEncontrado ? jogadorEncontrado.personagem : "Sem mortes";
+                    const opcoesFalsas = playersData
+                        .filter(p => p.personagem !== personagemultimoExecutado && p.personagem !== "Coveiro")
+                        .map(p => p.personagem);
+                    // const papelFalso = opcoesFalsas.length > 0
+                    //     ? opcoesFalsas[Math.floor(Math.random() * opcoesFalsas.length)]
+                    //     : "Barão";
+
+                    const semente = (ultimoExecutado || "Barão").length;
+                    const papelFalso = opcoesFalsas.length > 0
+                        ? opcoesFalsas[semente % opcoesFalsas.length]
+                        : "Barão";
+
+                    addAldeãoStep("Coveiro", `Coveiro (${nomeRealCoveiro})`, "⚰️", tfColor, `
+                    <div style="font-size:11px; color:#1E88E5; font-style:italic; margin-top: 5px; margin-bottom: 10px;">
+                            Habilidade: Cada noite (exceto a primeira), você aprende qual personagem morreu hoje por execução.
+                    </div>
+                    <div id="Coveiro-info" style="
+                        margin-top: 10px; 
+                        padding: 20px; 
+                        background: #ECEFF1; 
+                        border-radius: 12px; 
+                        border: 1px solid #CFD8DC; 
+                        text-align: center;
+                        position: relative;
+                        overflow: hidden;">
+                        
+                        <div style="position: absolute; top: 50%; left: 80%; transform: translate(-50%, -50%); font-size: 80px; opacity: 0.7; pointer-events: none;">
+                            💀
+                        </div>
+                        <div style="position: absolute; top: 50%; left: 20%; transform: translate(-50%, -50%); font-size: 80px; opacity: 0.7; pointer-events: none;">
+                        🪦
+                        </div>
+
+                        <div style="position: relative; z-index: 1;">
+                            <div style="font-size: 1.1em; color: #546E7A; margin-bottom: 5px;">O último executado pela vila foi:</div>
+                            <div style="font-size: 1.5em; font-weight: bold; color: #263238;">
+                                ${papelFalso}
+                            </div>
+                            <div style="font-size: 0.9em; color: #78909C; margin-top: 5px;">(${ultimoExecutado})</div>
+                        </div>
+                    </div>
+                    `);
+                }
+
+
+
+                // --- CENÁRIO E: HABILIDADE NORMAL ---
+                else if (CoveiroVivo) {
+                    const jogadorEncontrado = playersData.find(p => p.jogador === ultimoExecutado);
+                    const personagemultimoExecutado = jogadorEncontrado ? jogadorEncontrado.personagem : "Sem mortes";
+
+                    addAldeãoStep("Coveiro", `Coveiro (${nomeRealCoveiro})`, "⚰️", tfColor, `
+                    <div style="font-size:11px; color:#1E88E5; font-style:italic; margin-top: 5px; margin-bottom: 10px;">
+                            Habilidade: Cada noite (exceto a primeira), você aprende qual personagem morreu hoje por execução.
+                    </div>
+                    <div id="Coveiro-info" style="
+                        margin-top: 10px; 
+                        padding: 20px; 
+                        background: #ECEFF1; 
+                        border-radius: 12px; 
+                        border: 1px solid #CFD8DC; 
+                        text-align: center;
+                        position: relative;
+                        overflow: hidden;">
+                        
+                        <div style="position: absolute; top: 50%; left: 80%; transform: translate(-50%, -50%); font-size: 80px; opacity: 0.7; pointer-events: none;">
+                            💀
+                        </div>
+                        <div style="position: absolute; top: 50%; left: 20%; transform: translate(-50%, -50%); font-size: 80px; opacity: 0.7; pointer-events: none;">
+                        🪦
+                        </div>
+
+                        <div style="position: relative; z-index: 1;">
+                            <div style="font-size: 1.1em; color: #546E7A; margin-bottom: 5px;">O último executado pela vila foi:</div>
+                            <div style="font-size: 1.5em; font-weight: bold; color: #263238;">
+                                ${personagemultimoExecutado}
+                            </div>
+                            <div style="font-size: 0.9em; color: #78909C; margin-top: 5px;">(${ultimoExecutado})</div>
+                        </div>
+                    </div>
+                    `);
+                }
+
             }
 
-            if (rolesInPlay.includes("Chefe") && ChefeVivo && (isNightOne || isNightPlus) && (loginPersonagem == "Chefe" || loginJogador == "NARRADOR")) {
-                const dadosChefe = playersData.find(p => p.personagem === "Chefe");
-                const nomeRealChefe = dadosChefe.jogador;
-                addAldeãoStep("Chefe", `Chefe (${nomeRealChefe})`, "👨‍🍳", tfColor, `
-            <div class="instruction italic">👉 Mostre número de pares do mal (jogadores do mal lado a lado).</div>
-        `);
-            }
+            //     // --- CHEFE ---
+            //     if (rolesInPlay.includes("Chefe") && ChefeVivo && (isNightOne || isNightPlus) && (loginPersonagem == "Chefe" || loginJogador == "NARRADOR")) {
+            //         const dadosChefe = playersData.find(p => p.personagem === "Chefe");
+            //         const nomeRealChefe = dadosChefe.jogador;
+            //         addAldeãoStep("Chefe", `Chefe (${nomeRealChefe})`, "👨‍🍳", tfColor, `
+            //     <div class="instruction italic">👉 Mostre número de pares do mal (jogadores do mal lado a lado).</div>
+            // `);
+            //     }
 
-            // --- EMPATA ---
-            if (rolesInPlay.includes("Empata") && EmpataVivo && (isNightOne || isNightPlus) && (loginPersonagem == "Empata" || loginJogador == "NARRADOR")) {
-                const dadosEmpata = playersData.find(p => p.personagem === "Empata");
-                const nomeRealEmpata = dadosEmpata.jogador;
-                addAldeãoStep("Empata", `Empata (${nomeRealEmpata})`, "🧘", tfColor, `
-            <div class="instruction italic">👉 Mostre número de vizinhos <b>vivos</b> maus.</div>
-        `);
-            }
+            //     // --- EMPATA ---
+            //     if (rolesInPlay.includes("Empata") && EmpataVivo && (isNightOne || isNightPlus) && (loginPersonagem == "Empata" || loginJogador == "NARRADOR")) {
+            //         const dadosEmpata = playersData.find(p => p.personagem === "Empata");
+            //         const nomeRealEmpata = dadosEmpata.jogador;
+            //         addAldeãoStep("Empata", `Empata (${nomeRealEmpata})`, "🧘", tfColor, `
+            //     <div class="instruction italic">👉 Mostre número de vizinhos <b>vivos</b> maus.</div>
+            // `);
+            //     }
 
             // --- CARTOMANTE ---
             // --- JOGADOR ---
-            if (rolesInPlay.includes("Cartomante") && CartomanteVivo && (isNightOne || isNightPlus) && (loginPersonagem == "Cartomante" || loginJogador == "NARRADOR")) {
-                let options = '<option value="">Selecione um jogador...</option>';
-                vivos.forEach(p => {
-                    // Aqui usamos p.personagem como valor para o sistema checar se é Lobisomem/Decoy
-                    options += `<option value="${p.personagem}">${p.jogador}</option>`;
-                });
+            if (rolesInPlay.includes("Cartomante") && (isNightOne || isNightPlus) && (loginPersonagem == "Cartomante" || loginJogador == "NARRADOR")) {
                 const dadosCartomante = playersData.find(p => p.personagem === "Cartomante");
                 const nomeRealCartomante = dadosCartomante.jogador;
-                addAldeãoStep("Cartomante", `Cartomante (${nomeRealCartomante})`, "🔮", tfColor, `
-                <div class="instruction italic">👉 O Cartomante aponta para 2 jogadores:</div>
-                <select id="ft-target-1" onchange="checkCartomante()">${options}</select>
-                <select id="ft-target-2" onchange="checkCartomante()">${options}</select>
-                <div id="ft-response" style="margin-top: 10px; padding: 10px; border-radius: 5px; text-align: center; font-weight: bold; background: #EEE;">
-                Aguardando seleção...
-                </div>
-                <div style="background:#FFEBEE; padding:5px; border-radius:4px; font-size:11px; font-weight:bold; margin-top:10px;">⚠️ Lembrete: O Recluso conta como Lobisomem!</div>
-            `);
+
+                // --- CENÁRIO A: MORTO ---
+                if (!CartomanteVivo || (victimThisNight === "Cartomante" && (MongeProtectedRole !== victimThisNight || personagemEnvenenado === "Monge"))) {
+                    addStep("Cartomante", `Cartomante (${nomeRealCartomante})`, "👻", "bg-dead", `
+                    <div style="background:#546e7a; color:white; padding:15px; border-radius:8px; text-align:center; margin-top:10px;">
+                        <div style="font-size: 24px;">👻</div>
+                        <strong>VOCÊ ESTÁ MORTO</strong><br>
+                        <small>Fantasmas não podem usar habilidades noturnas, mas você ainda pode votar uma última vez no dia!</small>
+                    </div>
+                `);
+                }
+
+                // --- CENÁRIO B: AGUARDANDO ETAPAS ANTERIORES ---
+                else if (aguardandoVeneno) {
+                    addAldeãoStep("Cartomante", `Cartomante (${nomeRealCartomante})`, "⚰️", "bg-Aldeão", `
+                    <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
+                        🔮 Preparando as cartas... <br>
+                        Aguarde para receber sua informação.
+                    </div>
+                `);
+                }
+
+                // --- CENÁRIO C: ESCOLHA REALIZADA (AVALIAÇÃO SE ENVENENADO) ---
+                else if (selectedCartomantePlayer1 && selectedCartomantePlayer2) {
+
+                    // 1. Lógica de detecção de Mal (Lobisomem ou Recluso)
+                    const isEvilForFT = (role) => role === "Lobisomem" || role === "Recluso";
+
+                    // 2. Cálculo Real
+                    let resultadoReal = isEvilForFT(selectedCartomantePlayer1) || isEvilForFT(selectedCartomantePlayer2);
+                    let respostaFinal = resultadoReal;
+
+                    // 3. Lógica de Veneno (Inversão)
+                    if (personagemEnvenenado === "Cartomante") {
+                        respostaFinal = !resultadoReal;
+                    }
+
+                    // 4. Inversão de Cores e Textos Personalizados
+                    // SIM (Perigo) -> Vermelho | NÃO (Seguro) -> Verde
+                    const corBg = respostaFinal ? "#FFCDD2" : "#C8E6C9";
+                    const corTexto = respostaFinal ? "#C62828" : "#2E7D32";
+                    const textoResposta = respostaFinal ? "SIM" : "NÃO";
+                    const legenda = respostaFinal ? "Há um Lobisomem entre eles" : "Sem sinal do Lobisomem";
+
+                    addAldeãoStep("Cartomante", `Cartomante (${nomeRealCartomante})`, "🔮", "bg-Aldeão", `
+                    <div style="font-size:11px; color:#1E88E5; font-style:italic; margin-bottom: 10px;">
+                        Habilidade: Escolha 2 jogadores. Você descobre se pelo menos um deles é um Lobisomem (ou o Recluso).
+                    </div>
+                    <div style="background:${corBg}; color:${corTexto}; padding:15px; border-radius:8px; font-weight:bold; text-align:center; border: 2px solid ${corTexto}44; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <div style="font-size: 28px; letter-spacing: 2px;">${textoResposta}</div>
+                        <div style="font-size: 13px; margin-top: 5px; text-transform: uppercase;">${legenda}</div>
+                    </div>
+                `);
+                }
+
+                // --- CENÁRIO D: HABILIDADE NORMAL ---
+                else {
+                    let options = '<option value="">Selecione um jogador...</option>';
+                    playersData.forEach(p => { // alterer vivos por playersData
+                        // Aqui usamos p.personagem como valor para o sistema checar se é Lobisomem/Decoy
+                        options += `<option value="${p.personagem}">${p.jogador}</option>`;
+                    });
+
+                    addAldeãoStep("Cartomante", `Cartomante (${nomeRealCartomante})`, "🔮", tfColor, `
+                    <div class="instruction" style="font-size: 10px;">Habilidade: Cada noite você escolhe 2 jogadores e aprende se qualquer um deles é um Lobisomem. Há um bom jogador que se aparecerá como um Lobisomem para você.</div>
+                    <div class="instruction">📢 "${nomeRealCartomante}, escolha dois jogadores para revelar se há um Lobisomem no meio:"</div>
+                    <select id="ft-target-1" onchange="checkCartomante()">${options}</select>
+                    <select id="ft-target-2" onchange="checkCartomante()">${options}</select>
+                    <div id="ft-response" style="margin-top: 10px; padding: 10px; border-radius: 5px; text-align: center; font-weight: bold; background: #EEE;">
+                    Aguardando seleção...
+                    </div>
+                    <div style="background:#FFEBEE; padding:5px; border-radius:4px; font-size:11px; font-weight:bold; margin-top:10px;">⚠️ Lembrete: O Recluso conta como Lobisomem!</div>
+                `);
+                }
+
+
             }
 
             // --- NARRADOR ---
             if (rolesInPlay.includes("Cartomante") && CartomanteVivo && (isNightOne || isNightPlus) && loginJogador == "NARRADOR") {
-                addStep("Cartomante", `Cartomante (${nomeRealLobisomem})`, "🔮", tfColor, `
-            <div style="font-size:11px; color:#B71C1C; font-style:italic; margin-top: 5px; margin-bottom: 10px;">
-                Habilidade: ARRUMAR
-            </div>
-            <div class="instruction">📢 "Cartomante (${nomeRealLobisomem}) está escolhendo no dispositivo dele..."</div>
-                <div style="background: #e3f2fd; padding: 10px; border-radius: 5px; margin-top: 10px; border-left: 5px solid #2196F3;">
-                    <strong>Alvo selecionado 1: </strong> 
-                    <span id="kill-val" style="font-weight: bold; color: #d32f2f;">${selectedCartomantePlayer1}</span>
-                </div>
-                <div style="background: #e3f2fd; padding: 10px; border-radius: 5px; margin-top: 10px; border-left: 5px solid #2196F3;">
-                    <strong>Alvo selecionado 1: </strong> 
-                    <span id="kill-val" style="font-weight: bold; color: #d32f2f;">${selectedCartomantePlayer2}</span>
-                </div>
-                                            
-        `);
+                const dadosCartomante = playersData.find(p => p.personagem === "Cartomante");
+                const nomeRealCartomante = dadosCartomante.jogador;
+
+                addStep("Cartomante", `Cartomante (${nomeRealCartomante})`, "🔮", tfColor, `
+                <div class="instruction">📢 "Cartomante (${nomeRealCartomante}) está escolhendo no dispositivo dele..."</div>
+                    <div style="background: #e3f2fd; padding: 10px; border-radius: 5px; margin-top: 10px; border-left: 5px solid #2196F3;">
+                        <strong>Alvo selecionado 1: </strong> 
+                        <span id="kill-val" style="font-weight: bold; color: #d32f2f;">${selectedCartomantePlayer1}</span>
+                    </div>
+                    <div style="background: #e3f2fd; padding: 10px; border-radius: 5px; margin-top: 10px; border-left: 5px solid #2196F3;">
+                        <strong>Alvo selecionado 1: </strong> 
+                        <span id="kill-val" style="font-weight: bold; color: #d32f2f;">${selectedCartomantePlayer2}</span>
+                    </div>
+                                                
+            `);
+            }
+
+            // --- MATADOR ---
+            if (rolesInPlay.includes("Matador") && (isNightOne || isNightPlus) && (loginPersonagem == "Matador" || loginJogador == "NARRADOR")) {
+                const dadosMatador = playersData.find(p => p.personagem === "Matador");
+                const nomeRealMatador = dadosMatador.jogador;
+                const MatadorVivo = dadosMatador ? dadosMatador.vivo !== false : false;
+
+                // --- CENÁRIO A: MORTO ---
+                if (!MatadorVivo) {
+                    addStep("Matador", `Matador (${nomeRealMatador})`, "👻", "bg-dead", `
+                    <div style="background:#546e7a; color:white; padding:15px; border-radius:8px; text-align:center; margin-top:10px;">
+                        <div style="font-size: 24px;">👻</div>
+                        <strong>VOCÊ ESTÁ MORTO</strong><br>
+                        <small>Fantasmas não podem usar habilidades noturnas, mas você ainda pode votar uma última vez no dia!</small>
+                    </div>
+                `);
+                }
+
+                // --- CENÁRIO B: NOITE SEM HABILIDADE ---
+                else {
+                    addAldeãoStep("Matador", `Matador (${nomeRealMatador})`, "🏹", "bg-Aldeão", `
+                    <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
+                        ❌ Você não tem habilidade durante à noite. <br>
+                    </div>
+                `);
+                }
             }
 
 
@@ -1864,103 +2247,101 @@
                 addStep("Amanhecer", "Resumo", "☀️", "bg-day", `
                 <div class="instruction">📢 Vítima da noite:</div>
                 <div class="instruction"><strong style="color: #d32f2f;">${victimNameThisNight || "Ninguém"}</strong></div>
-            `);
+                `);
+
+                const dadosLogado = playersData.find(p => p.jogador === loginJogador);
+                // Verifica o status (ajuste 'vivo' ou 'status' conforme sua nomenclatura no JSON)
+                const estouVivo = dadosLogado ? dadosLogado.vivo : true;
 
                 // 2. Gerar o HTML da lista de jogadores (Grimório do Dia)
                 const listaJogadoresHTML = playersData.map((p, index) => {
-                    const isDead = p.vivo === false;
-                    const opacity = isDead ? "0.5" : "1";
-                    const grayscale = isDead ? "filter: grayscale(100%);" : "";
-                    const bgColor = isDead ? "#e0e0e0" : "white";
-                    const euSouOAlvo = p.jogador === loginJogador;
-                    const euJaIndiqueiHoje = jogadoresQueJaIndicaramNaRodada[loginJogador] !== undefined;
-                    const alvoJaFoiNomeado = jogadoresQueJaIndicadosNaRodada[p.jogador] !== undefined;
+                const isDead = p.vivo === false;
+                const opacity = isDead ? "0.5" : "1";
+                const grayscale = isDead ? "filter: grayscale(100%);" : "";
+                const bgColor = isDead ? "#e0e0e0" : "white";
+                const euSouOAlvo = p.jogador === loginJogador;
+                const euJaIndiqueiHoje = jogadoresQueJaIndicaramNaRodada[loginJogador] !== undefined;
+                const alvoJaFoiNomeado = jogadoresQueJaIndicadosNaRodada[p.jogador] !== undefined;              
 
-                    const dadosLogado = playersData.find(p => p.jogador === loginJogador);
-                    // Verifica o status (ajuste 'vivo' ou 'status' conforme sua nomenclatura no JSON)
-                    const estouVivo = dadosLogado ? dadosLogado.vivo : true;
+                // --- LÓGICA DO BOTÃO ---
+                let areaBotaoHTML = "";
 
-                    // --- LÓGICA DO BOTÃO ---
-                    let areaBotaoHTML = "";
+                if (isDead) {
+                    // Se o jogador estiver morto
+                    areaBotaoHTML = `
+                    <button disabled style="background: #9e9e9e; color: white; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 0.9em; cursor: not-allowed;">
+                        MORTO
+                    </button>`;
+                } else if (euSouOAlvo) {
+                    // NOVA TRAVA: Impede que você clique no próprio nome
+                    areaBotaoHTML = `
+                    <button disabled style="background: #cfd8dc; color: #546e7a; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 0.9em; cursor: not-allowed;">
+                        VOCÊ ❌
+                    </button>`;
+                } else if (alvoJaFoiNomeado) {
+                    // Jogador já foi para o tribunal hoje (não pode repetir)
+                    areaBotaoHTML = `
+                    <button disabled style="background: #757575; color: white; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 0.9em; cursor: not-allowed;">
+                        JÁ NOMEADO
+                    </button>`;
+                } else if (estouVivo === false) {
+                    areaBotaoHTML = `
+                    <button disabled style="background: #7f8c8d; color: white; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 0.9em; cursor: not-allowed; opacity: 0.8;">
+                        👻 VOCÊ ESTÁ MORTO
+                    </button>`;
+                }
 
-                    if (isDead) {
-                        // Se o jogador estiver morto
-                        areaBotaoHTML = `
-                        <button disabled style="background: #9e9e9e; color: white; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 0.9em; cursor: not-allowed;">
-                            MORTO
-                        </button>`;
-                    } else if (euSouOAlvo) {
-                        // NOVA TRAVA: Impede que você clique no próprio nome
-                        areaBotaoHTML = `
-                        <button disabled style="background: #cfd8dc; color: #546e7a; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 0.9em; cursor: not-allowed;">
-                            VOCÊ ❌
-                        </button>`;
-                    } else if (alvoJaFoiNomeado) {
-                        // Jogador já foi para o tribunal hoje (não pode repetir)
-                        areaBotaoHTML = `
-                        <button disabled style="background: #757575; color: white; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 0.9em; cursor: not-allowed;">
-                            JÁ NOMEADO
-                        </button>`;
-                    } else if (estouVivo === false) {
-                        areaBotaoHTML = `
-                        <button disabled style="background: #7f8c8d; color: white; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 0.9em; cursor: not-allowed; opacity: 0.8;">
-                            👻 VOCÊ ESTÁ MORTO
-                        </button>`;
-                    }
+                // Segundo: Verifica se você está vivo, mas já gastou sua ação do dia
+                else if (euJaIndiqueiHoje) {
+                    areaBotaoHTML = `
+                    <button disabled style="background: #95a5a6; color: white; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 0.9em; cursor: not-allowed;">
+                        ✅ VOCÊ JÁ INDICOU HOJE
+                    </button>`;
+                } else {
+                    // Se estiver vivo e ainda não indicou
+                    areaBotaoHTML = `
+                    <button onclick="iniciarNomeacao('${p.jogador}')" 
+                            style="background: #d32f2f; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 0.9em; transition: 0.2s;">
+                        Nomear
+                    </button>`;
+                }
 
-                    // Segundo: Verifica se você está vivo, mas já gastou sua ação do dia
-                    else if (euJaIndiqueiHoje) {
-                        areaBotaoHTML = `
-                        <button disabled style="background: #95a5a6; color: white; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 0.9em; cursor: not-allowed;">
-                            ✅ VOCÊ JÁ INDICOU HOJE
-                        </button>`;
-                    } else {
-                        // Se estiver vivo e ainda não indicou
-                        areaBotaoHTML = `
-                        <button onclick="iniciarNomeacao('${p.jogador}')" 
-                                style="background: #d32f2f; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 0.9em; transition: 0.2s;">
-                            Nomear
-                        </button>`;
-                    }
-
-                    return `
-            <div class="player-card" style="background: ${bgColor}; opacity: ${opacity}; ${grayscale} border-left: 5px solid ${isDead ? '#9e9e9e' : '#4CAF50'}; padding: 12px; margin-bottom: 8px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                
+                return `
+                <div class="player-card" style="background: ${bgColor}; opacity: ${opacity}; ${grayscale} border-left: 5px solid ${isDead ? '#9e9e9e' : '#4CAF50'}; padding: 12px; margin-bottom: 8px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
                 <div class="player-name" style="font-weight: bold; font-size: 1.2em; color: ${isDead ? '#757575' : '#333'};">
-                    ${isDead ? '💀 ' : ''}${p.jogador}
+                ${isDead ? '💀 ' : ''}${p.jogador}
                 </div>
-
                 <div>
-                    ${areaBotaoHTML}
+                ${areaBotaoHTML}
                 </div>
-            </div>
-        `;
+                </div>
+                `;
                 }).join("");
 
                 // 3. Adicionar o "Grimório" como um novo passo
                 addStep("Discussão", "Grimório da Vila", "📜", "bg-white", `
-        <div class="section-title">Jogadores</div>
-        <div id="lista-grimorio-dia">
-            ${listaJogadoresHTML}
-        </div>
+                <div class="section-title">Jogadores</div>
+                <div id="lista-grimorio-dia">
+                    ${listaJogadoresHTML}
+                </div>
 
-        ${loginJogador === "NARRADOR" ? `
-            <div style="margin-top: 20px; padding: 15px; border-top: 2px dashed #ccc; text-align: center;">
-                <button onclick="anoitecer()" 
-                        style="background: #263238; color: white; border: none; padding: 15px 30px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 1.1em; box-shadow: 0 4px 6px rgba(0,0,0,0.2); width: 100%;">
-                    ☀️ Encerrar Dia e Ir para a Noite 🌙
-                </button>
-                <small style="color: #7f8c8d; display: block; margin-top: 8px;">Apenas o Narrador pode encerrar o dia.</small>
-            </div>
-        ` : ''}
+                ${loginJogador === "NARRADOR" ? `
+                    <div style="margin-top: 20px; padding: 15px; border-top: 2px dashed #ccc; text-align: center;">
+                        <button onclick="anoitecer()" 
+                                style="background: #263238; color: white; border: none; padding: 15px 30px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 1.1em; box-shadow: 0 4px 6px rgba(0,0,0,0.2); width: 100%;">
+                            ☀️ Encerrar Dia e Ir para a Noite 🌙
+                        </button>
+                        <small style="color: #7f8c8d; display: block; margin-top: 8px;">Apenas o Narrador pode encerrar o dia.</small>
+                    </div>
+                ` : ''}
 
-        <div class="instruction italic" style="margin-top: 15px;">
-            👉 Clique em <strong>Nomear</strong> para iniciar um processo de execução contra um jogador.
-        </div>
-        <div class="instruction italic" style="margin-top: 15px; text-align: center; color: #666;">
-        📢 "A vila agora discute quem deve ser levado à execução."
-        </div>
-    `);
+                <div class="instruction italic" style="margin-top: 15px;">
+                    👉 Clique em <strong>Nomear</strong> para iniciar um processo de execução contra um jogador.
+                </div>
+                <div class="instruction italic" style="margin-top: 15px; text-align: center; color: #666;">
+                📢 "A vila agora discute quem deve ser levado à execução."
+                </div>
+            `);
             }
 
             if (isExecution) {
@@ -2005,10 +2386,6 @@
                     🔔 Encerrar Votação (Voltar para o Dia)
                 </button>
                 <hr style="border: 0; border-top: 1px solid #ccc; margin: 10px 0;">
-                <button onclick="confirmarMorteExecucao('${acusado}')" 
-                        style="background: #d32f2f; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer;">
-                    💀 Confirmar Execução Final (Morre)
-                </button>
             </div>
         `;
                 } else {
@@ -2047,6 +2424,33 @@
             ${botoesAcaoHtml}
         </div>
     `);
+            }
+
+            if ((isDay || isExecution) && rolesInPlay.includes("Matador") && loginPersonagem == "Matador" && MatadorVivo) {
+                const dadosMatador = playersData.find(p => p.personagem === "Matador");
+                const nomeRealMatador = dadosMatador.jogador;
+
+                if (matadorJaAtirou) {
+                    addAldeãoStep("Matador", `Matador (${nomeRealMatador})`, "🏹", "bg-Aldeão", `
+                    <div style="text-align:center; opacity:0.6;">
+                        <p>Sua aljava está vazia. O tiro já foi disparado.</p>
+                    </div>
+                `);
+                } else {
+                    let options = '<option value="">Selecione o alvo...</option>';
+                    vivos.forEach(p => {
+                        // Dica: Impedir que ele atire em si mesmo (opcional mas recomendado)
+                        if (p.jogador !== loginJogador) {
+                            options += `<option value="${p.jogador}">${p.jogador}</option>`;
+                        }
+                    });
+
+                    addAldeãoStep("Matador", `Matador (${nomeRealMatador})`, "🏹", "bg-Aldeão", `
+                    <div class="instruction" style="font-size: 10px;">Habilidade: Uma vez por jogo, durante o dia, escolha <b><u>publicamente</u></b> um jogador: se ele for o Lobisomem, ele morre.</div>
+                    <div class="instruction">Você tem um tiro de prata. Se acertar o Lobisomem, a aldeia vence.</div>
+                    <select onchange="dispararTiroMatador(this)">${options}</select>
+                    `);
+                }
             }
 
         }
@@ -2192,125 +2596,72 @@
             }
         }
 
-        // --- FUNÇÃO AUXILIAR PARA LAVADEIRA (ATUALIZADA) ---
         function updateLavadeiraInfo(selectedRole) {
-            const infoDiv = document.getElementById('Lavadeira-info');
-            if (!selectedRole) {
-                infoDiv.innerHTML = '<div class="instruction italic">👉 Aponte para 2 jogadores (um deles deve ser o selecionado).</div>';
-                return;
-            }
+            if (!selectedRole) return;
 
-            selectedLavadeiraRole = selectedRole; // Salva na variável global
-            const label = document.getElementById('Lavadeira-token-label');
-            if (label) {
-                label.innerText = selectedRole || "?";
-            }
-
+            // 1. Apenas calculamos os dados necessários
             const targetPlayer = playersData.find(p => p.personagem === selectedRole);
-            selectedLavadeiraRealPlayer = targetPlayer ? targetPlayer.jogador : "Não encontrado";
+            const realPlayerName = targetPlayer ? targetPlayer.jogador : "Não encontrado";
 
-            // VERIFICAÇÃO PELA VARIÁVEL GLOBAL
-            const isPoisoned = (personagemEnvenenado === "Lavadeira");
-
-            const termo = isPoisoned ? "EXCETO" : "incluindo";
-            const estilo = isPoisoned ? "color: red; font-weight: bold;" : "";
-
-            infoDiv.innerHTML = `
-            <div class="instruction italic">✅ Personagem escolhido: <strong>${selectedRole}</strong></div>
-            <div class="instruction italic">✅ Jogador (real): <strong>${targetPlayer ? targetPlayer.jogador : 'Não encontrado'}</strong></div>
-            <div class="instruction italic" style="margin-top: 5px;">
-                👉 Aponte para 2 jogadores, <span style="${estilo}">${termo}</span> <strong>${targetPlayer ? targetPlayer.jogador : 'o jogador correto'}</strong>.
-            </div>
-        `;
-            firebase.database().ref('partida/escolhasNoite/selectedLavadeiraRole').set(selectedRole); //SALVANDO O PERSONAGEM NO FIREBASE
-            firebase.database().ref('partida/escolhasNoite/selectedLavadeiraRealPlayer').set(selectedLavadeiraRealPlayer); //SALVANDO O JOGADOR NO FIREBASE
+            // 2. Enviamos TUDO de uma vez (Atômico)
+            firebase.database().ref('partida/escolhasNoite').update({
+                selectedLavadeiraRole: selectedRole,
+                selectedLavadeiraRealPlayer: realPlayerName
+            }).then(() => {
+                console.log("[AUDITORIA] Dados da Lavadeira sincronizados.");
+            });
         }
 
         function updateLavadeiraFake(playerName) {
-            selectedLavadeiraFakePlayer = playerName;
-
-            firebase.database().ref('partida/escolhasNoite/selectedLavadeiraFakePlayer').set(selectedLavadeiraFakePlayer); //SALVANDO O JOGADOR NO FIREBASE
+            if (!playerName) return;
+            firebase.database().ref('partida/escolhasNoite/selectedLavadeiraFakePlayer').set(playerName);
         }
 
-        // --- FUNÇÃO AUXILIAR PARA BIBLIOTECÁRIO (ATUALIZADA) ---
+        // --- FUNÇÃO BIBLIOTECÁRIO ---
         function updateBibliotecárioInfo(selectedRole) {
-            const infoDiv = document.getElementById('Bibliotecário-info');
-            if (!selectedRole) {
-                infoDiv.innerHTML = '<div class="instruction italic">👉 Aponte para 2 jogadores (um deles deve ser o selecionado).</div>';
-                return;
-            }
-            selectedBibliotecárioRole = selectedRole; // Salva na variável global
-            const label = document.getElementById('Bibliotecário-token-label');
-            if (label) {
-                label.innerText = selectedRole || "?";
-            }
+            if (!selectedRole) return;
 
+            // 1. Apenas calculamos os dados necessários
             const targetPlayer = playersData.find(p => p.personagem === selectedRole);
-            selectedBibliotecárioRealPlayer = targetPlayer ? targetPlayer.jogador : "Não encontrado"; // Salva na variável global
+            const realPlayerName = targetPlayer ? targetPlayer.jogador : "Não encontrado";
 
-            // VERIFICAÇÃO PELA VARIÁVEL GLOBAL
-            const isPoisoned = (personagemEnvenenado === "Bibliotecário");
-
-            const termo = isPoisoned ? "EXCETO" : "incluindo";
-            const estilo = isPoisoned ? "color: red; font-weight: bold;" : "";
-
-            infoDiv.innerHTML = `
-            <div class="instruction italic">✅ Personagem escolhido: <strong>${selectedRole}</strong></div>
-            <div class="instruction italic">✅ Jogador (real): <strong>${targetPlayer ? targetPlayer.jogador : 'Não encontrado'}</strong></div>
-            <div class="instruction italic" style="margin-top: 5px;">
-                👉 Aponte para 2 jogadores, <span style="${estilo}">${termo}</span> <strong>${targetPlayer ? targetPlayer.jogador : 'o jogador correto'}</strong>.
-            </div>
-        `;
-            firebase.database().ref('partida/escolhasNoite/selectedBibliotecárioRole').set(selectedRole); //SALVANDO O PERSONAGEM NO FIREBASE
-            firebase.database().ref('partida/escolhasNoite/selectedBibliotecárioRealPlayer').set(selectedBibliotecárioRealPlayer); //SALVANDO O JOGADOR NO FIREBASE
+            // 2. Enviamos TUDO de uma vez (Atômico)
+            firebase.database().ref('partida/escolhasNoite').update({
+                selectedBibliotecárioRole: selectedRole,
+                selectedBibliotecárioRealPlayer: realPlayerName
+            }).then(() => {
+                console.log("[AUDITORIA] Dados do Bibliotecário sincronizados.");
+            });
         }
 
         function updateBibliotecárioFake(playerName) {
-            selectedBibliotecárioFakePlayer = playerName;
-
-            firebase.database().ref('partida/escolhasNoite/selectedBibliotecárioFakePlayer').set(selectedBibliotecárioFakePlayer); //SALVANDO O JOGADOR NO FIREBASE
+            if (!playerName) return;
+            firebase.database().ref('partida/escolhasNoite/selectedBibliotecárioFakePlayer').set(playerName);
         }
 
-        // --- FUNÇÃO AUXILIAR PARA INVESTIGATOR (ATUALIZADA) ---
+        // --- FUNÇÃO INVESTIGATOR ---
         function updateInvestigadorInfo(selectedRole) {
-            const infoDiv = document.getElementById('Investigador-info');
-            if (!selectedRole) {
-                infoDiv.innerHTML = '<div class="instruction italic">👉 Aponte para 2 jogadores (um deles deve ser o selecionado).</div>';
-                return;
-            }
+            if (!selectedRole) return;
 
-            selectedInvestigadorRole = selectedRole; // Salva na variável global
-            const label = document.getElementById('Investigador-token-label');
-            if (label) {
-                label.innerText = selectedRole || "?";
-            }
-
+            // 1. Apenas calculamos os dados necessários
             const targetPlayer = playersData.find(p => p.personagem === selectedRole);
-            selectedInvestigadorRealPlayer = targetPlayer ? targetPlayer.jogador : "Não encontrado";
+            const realPlayerName = targetPlayer ? targetPlayer.jogador : "Não encontrado";
 
-            // VERIFICAÇÃO PELA VARIÁVEL GLOBAL
-            const isPoisoned = (personagemEnvenenado === "Investigador");
-
-            const termo = isPoisoned ? "EXCETO" : "incluindo";
-            const estilo = isPoisoned ? "color: red; font-weight: bold;" : "";
-
-            infoDiv.innerHTML = `
-            <div class="instruction italic">✅ Personagem escolhido: <strong>${selectedRole}</strong></div>
-            <div class="instruction italic">✅ Jogador (real): <strong>${targetPlayer ? targetPlayer.jogador : 'Não encontrado'}</strong></div>
-            <div class="instruction italic" style="margin-top: 5px;">
-                👉 Aponte para 2 jogadores, <span style="${estilo}">${termo}</span> <strong>${targetPlayer ? targetPlayer.jogador : 'o jogador correto'}</strong>.
-            </div>
-        `;
-            firebase.database().ref('partida/escolhasNoite/selectedInvestigadorRole').set(selectedRole); //SALVANDO O PERSONAGEM NO FIREBASE
-            firebase.database().ref('partida/escolhasNoite/selectedInvestigadorRealPlayer').set(selectedInvestigadorRealPlayer); //SALVANDO O JOGADOR NO FIREBASE
+            // 2. Enviamos TUDO de uma vez (Atômico)
+            firebase.database().ref('partida/escolhasNoite').update({
+                selectedInvestigadorRole: selectedRole,
+                selectedInvestigadorRealPlayer: realPlayerName
+            }).then(() => {
+                console.log("[AUDITORIA] Dados do Investigador sincronizados.");
+            });
         }
 
         function updateInvestigadorFake(playerName) {
-            selectedInvestigadorFakePlayer = playerName;
-
-            firebase.database().ref('partida/escolhasNoite/selectedInvestigadorFakePlayer').set(selectedInvestigadorFakePlayer); //SALVANDO O JOGADOR NO FIREBASE
+            if (!playerName) return;
+            firebase.database().ref('partida/escolhasNoite/selectedInvestigadorFakePlayer').set(playerName);
         }
 
+        // --- FUNÇÃO MONGE ---
         function handleMongeProtect(selectElement) {
             const target = selectElement.value;
             const feedback = document.getElementById('Monge-feedback');
@@ -2321,16 +2672,12 @@
                 const nomejogadorProtegido = dadosAlvo ? dadosAlvo.jogador : target;
 
                 // 2. Envia a escolha para o Firebase
-                firebase.database().ref('partida/escolhasNoite/MongeProtectedPlayer').set(target)
+                firebase.database().ref('partida/escolhasNoite/MongeProtectedRole').set(target)
                     .then(() => {
                         console.log(`[FIREBASE] Proteção do Monge registrada: ${target}`);
 
                         // Notificação discreta de sucesso
                         if (typeof showToast === "function") showToast(`Proteção em ${nomejogadorProtegido} confirmada.`);
-
-                        // #REMOVER
-                        // Mantém a chamada da condição do Guardião se necessário
-                        //if (typeof checkGuardiãoCondition === "function") checkGuardiãoCondition();
                     })
                     .catch(error => {
                         console.error("Erro ao salvar proteção do Monge:", error);
@@ -2340,11 +2687,12 @@
             // # REMOVER - JOGAR PARA UMA FUNÇÃO DE DECISÃO CHAMADA NA FUNÇÃO DE AMANHECER
             if (personagemEnvenenado === "Monge") {
                 console.log("personagemEnvenenado === Monge")
-                firebase.database().ref('partida/escolhasNoite/MongeProtectedPlayer').set("Falhou")
-                MongeProtectedPlayer = "Falhou"
+                firebase.database().ref('partida/escolhasNoite/MongeProtectedRole').set("Falhou")
+                MongeProtectedRole = "Falhou"
             }
         }
 
+        // --- FUNÇÃO LOBISOMEM ---
         function handleKill(selectElement) {
             const targetPlayer = selectElement.value;
 
@@ -2370,114 +2718,96 @@
         }
 
 
-        function checkGuardiãoCondition() {
-            const stepRaven = document.getElementById('step-Guardião');
-            if (!stepRaven) return;
+        // Matador (slayer)
+        function dispararTiroMatador(selectElement) {
+            const nomeDoAlvo = selectElement.value; // Pega o valor da string selecionada
+            if (!nomeDoAlvo) return;
 
-            // 1. Encontra os dados da Guardião
-            const ravenData = playersData.find(p => p.personagem === "Guardião");
-            if (!ravenData) return;
-
-            // 2. Descobre QUEM o Lobisomem quer matar (pegando o personagem do alvo)
-            // Assumindo que victimThisNight guarda o nome do JOGADOR escolhido pelo Lobisomem
-            const personagemMortoPeloLobisomem = victimThisNight;
-
-            // 3. CONDIÇÃO PARA ACORDAR:
-            // O alvo do Lobisomem é a Guardião?
-            const lobisomemMatouRaven = (personagemMortoPeloLobisomem === "Guardião");
-
-            // O Monge protegeu a Guardião?
-            const MongeProtegeuRaven = (MongeProtectedPlayer === "Guardião");
-
-            if (lobisomemMatouRaven && !MongeProtegeuRaven) {
-                stepRaven.style.display = 'block';
-                stepRaven.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                showToast("🦅 Guardião acordará: ela foi morta pelo Lobisomem!");
-            } else {
-                stepRaven.style.display = 'none';
-            }
-        }
-
-        function updateGuardiãoInfo(selectedRole) {
-            const infoDiv = document.getElementById('Guardião-info');
-            if (!selectedRole) {
-                infoDiv.innerHTML = '';
+            // 1º Confirm: Checklist de Regra (O anúncio público)
+            if (!confirm(`⚠️ REGRA: Você já fez o anúncio publicamente para todos os jogadores?`)) {
+                selectElement.value = "";
                 return;
             }
 
-            // 1. Verificação de Envenenamento
-            const isPoisoned = (personagemEnvenenado === "Guardião");
+            // 2º Confirm: Intenção de Jogo (O alvo)
 
-            // 2. Definição do texto baseado no status
-            const textoInstrucao = isPoisoned
-                ? `👉 Mostre a ficha do personagem de qualquer outro jogador, <span style="color: red; font-weight: bold;">EXCETO</span> <strong>${selectedRole}</strong>. <span style="color: red; font-weight: bold;">Selecione qualquer outro jogador na lista.</span>`
-                : `👉 Mostre a ficha do personagem: <strong>${selectedRole}</strong>`;
+            if (!confirm(`Você tem certeza que deseja atirar em ${nomeDoAlvo}? Esta ação é única e definitiva.`)) {
+                selectElement.value = ""; // Reseta o select se cancelar
+                return;
+            }
 
-            infoDiv.innerHTML = `
-            <div style="background:#E3F2FD; padding:10px; border-radius:5px; border: 1px solid #1E88E5; margin-bottom: 15px;">
-                ${textoInstrucao}
-                </div>
+            const dadosAlvo = playersData.find(p => p.jogador === nomeDoAlvo);
+            const personagemAlvo = dadosAlvo ? dadosAlvo.personagem : null;
 
-                <div style="display: flex; flex-direction: column; align-items: center; margin: 20px 0;">
-                <div style="
-                    width: 110px; height: 110px; border-radius: 50%; 
-                    background: radial-gradient(circle, #BDBDBD 0%, #FFCDD2 100%); 
-                    border: 5px double #616161; 
-                    display: flex; align-items: center; justify-content: center; 
-                    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-                    text-align: center; padding: 10px; box-sizing: border-box;
-                ">
-                    <strong id="Guardião-token-label" style="color: #212121; font-size: 14px; font-family: 'serif';">
-                        ${selectedRole}
-                    </strong>
-                </div>
-                <div style="margin-top: 10px; font-size: 11px; color: #1E88E5; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">
-                    MOSTRAR ESTE TOKEN
-                </div>
-            </div>
-            `;
+            // Alinhando os nomes: Usei "Matador" para ser consistente com seu if
+            const matadorEstaIncapacitado = (personagemEnvenenado === "Matador");
+
+            let updates = {};
+            updates['partida/configuracao/matadorJaAtirou'] = true;
+
+            if (personagemAlvo === "Lobisomem" && !matadorEstaIncapacitado) {
+                updates['partida/configuracao/vitoria'] = "Good";
+                updates['partida/jogadores/' + nomeDoAlvo + '/vivo'] = false;
+                console.log("🎯 TIRO CERTEIRO!");
+            } else {
+                console.log("💨 O tiro falhou.");
+            }
+
+            db.ref().update(updates).then(() => {
+                showToast("O Matador realizou seu disparo!");
+            });
+        }
+
+        // --- FUNÇÃO GUARDIÃO ---
+        function updateGuardiãoInfo(selectElement) {
+            const targetPlayer = selectElement.value;
+
+            if (targetPlayer) {
+                // 1. Busca o nome do jogador para exibição amigável
+                const dadosAlvo = playersData.find(p => p.personagem === targetPlayer);
+                const nomejogadorAlvo = dadosAlvo ? dadosAlvo.jogador : targetPlayer;
+
+                // 2. Envia a escolha para o Firebase
+                firebase.database().ref('partida/escolhasNoite/selectedGuardiãoRole').set(targetPlayer)
+                    .then(() => {
+                        console.log(`[FIREBASE] Escolha do Guardião registrada: ${targetPlayer}`);
+
+                        // Notificação discreta de sucesso
+                        if (typeof showToast === "function") showToast(`Jogador ${nomejogadorAlvo} confirmado.`);
+                    })
+                    .catch(error => {
+                        console.error("Erro ao salvar proteção do Monge:", error);
+                        alert("Falha na conexão. Tente selecionar novamente.");
+                    });
+            }
+
         }
 
         function checkCartomante() {
             const t1 = document.getElementById('ft-target-1').value;
             const t2 = document.getElementById('ft-target-2').value;
-            const responseDiv = document.getElementById('ft-response');
 
-            selectedCartomantePlayer1 = t1;
-            selectedCartomantePlayer2 = t2;
+            // Só dispara se ambos estiverem preenchidos (evita salvar dados incompletos)
+            if (t1 && t2) {
+                // const db = firebase.database();
 
-            if (!t1 || !t2) {
-                responseDiv.innerHTML = "Selecione os dois alvos.";
-                responseDiv.style.background = "#EEE";
-                return;
+                // Criamos o objeto para salvar os dois alvos atomicamente
+                const updates = {};
+                updates['partida/escolhasNoite/selectedCartomantePlayer1'] = t1;
+                updates['partida/escolhasNoite/selectedCartomantePlayer2'] = t2;
+
+                db.ref().update(updates)
+                    .then(() => {
+                        console.log(`[FIREBASE] Cartomante registrou: ${t1} e ${t2}`);
+
+                        // Feedback visual para o Narrador (opcional, já que o renderScript cuidará disso)
+                        if (typeof showToast === "function") showToast("Alvos da Cartomante confirmados.");
+                    })
+                    .catch(error => {
+                        console.error("Erro ao salvar Cartomante:", error);
+                        alert("Falha ao salvar. Verifique a conexão.");
+                    });
             }
-
-            // 1. Definição de quem é "Mau" para a FT (Lobisomem ou o Red-Herring/Recluso)
-            const isEvilForFT = (role) => role === "Lobisomem" || role === "Recluso";
-
-            // 2. Cálculo do resultado Real
-            let resultadoReal = isEvilForFT(t1) || isEvilForFT(t2);
-            let respostaFinal = resultadoReal;
-
-            // 3. Lógica de Veneno: Se envenenada, invertemos a resposta
-            let infoStatus = "";
-            if (personagemEnvenenado === "Cartomante") {
-                respostaFinal = !resultadoReal; // Inverte: Se era SIM, vira NÃO.
-                infoStatus = "🤢 (INFO FALSA - ENVENENADA)";
-            }
-
-            // 4. Renderização da Resposta para o Narrador
-            if (respostaFinal) {
-                responseDiv.innerHTML = `✅ RESPOSTA: SIM <br><small>${infoStatus}</small>`;
-                responseDiv.style.background = "#C8E6C9"; // Verde
-                responseDiv.style.color = "#2E7D32";
-            } else {
-                responseDiv.innerHTML = `❌ RESPOSTA: NÃO <br><small>${infoStatus}</small>`;
-                responseDiv.style.background = "#FFCDD2"; // Vermelho
-                responseDiv.style.color = "#C62828";
-            }
-            firebase.database().ref('partida/escolhasNoite/selectedCartomantePlayer1').set(selectedCartomantePlayer1); //SALVANDO O JOGADOR NO FIREBASE
-            firebase.database().ref('partida/escolhasNoite/selectedCartomantePlayer2').set(selectedCartomantePlayer2); //SALVANDO O JOGADOR NO FIREBASE
         }
 
         function showToast(msg) {
@@ -2492,13 +2822,14 @@
 
             // 1. CÁLCULO DA RESOLUÇÃO (Single Point of Failure)
             // Decidimos aqui, de uma vez por todas, se a morte foi anulada.
-            const protecaoAtiva = (MongeProtectedPlayer === victimThisNight && personagemEnvenenado !== "Monge");
+            const protecaoMonge = (MongeProtectedRole === victimThisNight && personagemEnvenenado !== "Monge");
+            const protecaoSoldado = (victimThisNight === "Soldado" && personagemEnvenenado !== "Soldado");
 
             let vitimaFinal = victimThisNight;
             let nomeFinal = victimNameThisNight;
 
-            if (protecaoAtiva) {
-                console.log("🛡️ Auditoria: Proteção do Monge validada.");
+            if (protecaoMonge || protecaoSoldado) {
+                console.log(protecaoMonge ? "🛡️ Auditoria: Proteção do Monge validada." : "🎖️ Auditoria: Defesa do Soldado validada.");
                 vitimaFinal = "Ninguém";
                 nomeFinal = "Ninguém";
             }
@@ -2527,6 +2858,9 @@
                 db.ref('partida/animacoes/triggerAmanhecer').set(true);
                 setTimeout(() => db.ref('partida/animacoes/triggerAmanhecer').remove(), 10000);
 
+                // 6. LIMPAR PARA O COVEIRO
+                db.ref('partida/configuracao/ultimoExecutado').remove()
+
             } catch (error) {
                 console.error("Falha na auditoria do amanhecer:", error);
                 alert("Erro ao processar amanhecer. Tente novamente.");
@@ -2538,14 +2872,23 @@
             const modal = document.getElementById('modal-morte-noite');
             const corpo = document.getElementById('morte-noite-corpo');
             const titulo = document.getElementById('morte-noite-titulo');
+            const btn = document.getElementById('morte-noite-botao'); // Localiza o botão
 
             if (!victimNameThisNight || victimNameThisNight === "Ninguém") {
+                // --- CONFIGURAÇÃO: NOITE DE PAZ ---
                 titulo.innerText = "🕊️ NOITE DE PAZ";
-                titulo.style.color = "#4CAF50"; // Verde para paz
+                titulo.style.color = "#4CAF50";
+                modal.style.background = "rgba(0, 30, 0, 0.95)"; // Fundo Verde Escuro
+                btn.style.background = "#4CAF50"; // Botão Verde
+                btn.innerText = "Celebrar e Prosseguir"; // Texto do Botão
                 corpo.innerHTML = "O sol nasce e todos acordam vivos.<br>O mal não fez vítimas nesta noite.";
             } else {
+                // --- CONFIGURAÇÃO: TRAGÉDIA ---
                 titulo.innerText = "🩸 TRAGÉDIA NA NOITE";
-                titulo.style.color = "#d32f2f"; // Vermelho para sangue
+                titulo.style.color = "#d32f2f";
+                modal.style.background = "rgba(30, 0, 0, 0.95)"; // Fundo Vermelho Escuro (Original)
+                btn.style.background = "#d32f2f"; // Botão Vermelho
+                btn.innerText = "Lamentar e Prosseguir"; // Texto Original
                 corpo.innerHTML = "Ao amanhecer, a vila descobre um corpo...<br>O jogador <span style='color: #ff5252; font-weight: bold; font-size: 1.2em;'>" + victimNameThisNight + "</span> foi brutalmente morto!";
             }
 
@@ -2587,86 +2930,250 @@
 
         //#region DIA
         // ------------------------------------------------------------------------------------------------------ DIA -----------------------------------------------------------------------------------------------------------------
+        // function iniciarNomeacao(nomeDoAcusado) {
+        //     if (confirm(`Deseja iniciar a votação para executar ${nomeDoAcusado}?`)) {
+        //         // 1. Salva quem é o alvo da execução no Firebase (opcional, mas bom para exibir na tela de voto)
+        //         const dadosAcusador = playersData.find(p => p.jogador === loginJogador);
+        //         const timeAcusador = dadosAcusador ? dadosAcusador.tipo : "Não encontrado";
+
+        //         const dadosAcusado = playersData.find(p => p.jogador === nomeDoAcusado);
+        //         const personagemAcusado = dadosAcusado ? dadosAcusado.personagem : "Não encontrado";
+
+        //         acusadoAtual = nomeDoAcusado;
+        //         acusadorAtual = loginJogador;
+        //         db.ref('partida/configuracao/acusadoAtual').set(nomeDoAcusado);
+        //         db.ref('partida/configuracao/acusadorAtual').set(loginJogador);
+        //         // Lista de indicantes
+        //         db.ref('partida/forca/quemJaIndicouHoje/' + loginJogador).set(true);
+        //         db.ref('partida/forca/quemJaIndicadoHoje/' + nomeDoAcusado).set(true);
+
+        //         // 2. Muda a fase para 'execution'
+        //         updateGamePhase('execution');
+
+        //         console.log("Iniciando fase de execução para:", nomeDoAcusado);
+        //         console.log("Acusador:", loginJogador);
+
+        //         if (personagemAcusado === "Virgem" && virgemJaNomeada === false) {
+        //             verificacaoVirgem(timeAcusador)
+        //             db.ref('partida/configuracao/virgemJaNomeada').set(true);
+        //         }
+
+        //     }
+        // }
+
+        // function verificacaoVirgem(loginJogador, timeAcusador) {
+        //     if (timeAcusador === "Aldeão") {
+        //         db.ref('partida/jogadores/' + loginJogador + '/vivo').set(false);
+
+        //         db.ref('partida/escolhasNoite').remove();
+        //         db.ref('partida/forca/quemJaIndicouHoje').remove();
+        //         db.ref('partida/forca/quemJaIndicadosNaRodada').remove();
+        //         db.ref('partida/forca/quemJaIndicadoHoje').remove();
+        //         db.ref('partida/forca/emexecucao').remove();
+        //         db.ref('partida/configuracao/recordeVotosDia').set(0);
+
+        //         // Trigger do anoitcer
+        //         db.ref('partida/animacoes/triggerAnoitecer').set("trigger");
+
+        //         // 3. Muda a fase para Noite+
+        //         updateGamePhase('nightPlus');
+
+        //         setTimeout(() => {
+        //             db.ref('partida/animacoes/triggerAnoitecer').remove();
+        //         }, 10000);
+
+        //     }
+        //     else {
+        //         console.log("Não é aldeão.")
+        //     }
+        // }
+
         function iniciarNomeacao(nomeDoAcusado) {
-            if (confirm(`Deseja iniciar a votação para executar ${nomeDoAcusado}?`)) {
-                // 1. Salva quem é o alvo da execução no Firebase (opcional, mas bom para exibir na tela de voto)
-
-                acusadoAtual = nomeDoAcusado;
-                acusadorAtual = loginJogador;
-                db.ref('partida/configuracao/acusadoAtual').set(nomeDoAcusado);
-                db.ref('partida/configuracao/acusadorAtual').set(loginJogador);
-                // Lista de indicantes
-                db.ref('partida/forca/quemJaIndicouHoje/' + loginJogador).set(true);
-                db.ref('partida/forca/quemJaIndicadoHoje/' + nomeDoAcusado).set(true);
-
-
-                // 2. Muda a fase para 'execution'
-                updateGamePhase('execution');
-
-                console.log("Iniciando fase de execução para:", nomeDoAcusado);
-                console.log("Acusador:", loginJogador);
+            // 1. Filtro local imediato
+            if (acusadoAtual !== "" && acusadoAtual !== null) {
+                alert("Já existe uma nomeação em curso!");
+                return;
             }
+
+            if (!confirm(`Deseja iniciar a votação para executar ${nomeDoAcusado}?`)) return;
+
+            const refAcusado = db.ref('partida/configuracao/acusadoAtual');
+
+            // 2. A TRANSAÇÃO (O "Juiz" que decide quem clicou primeiro)
+            refAcusado.transaction((valorAtual) => {
+                // Se o valor no servidor for null ou vazio, eu ocupo a vaga
+                if (valorAtual === null || valorAtual === "") {
+                    return nomeDoAcusado;
+                } else {
+                    return; // Aborta a transação se já houver alguém
+                }
+            }, (error, committed, snapshot) => {
+                if (committed) {
+                    // SUCESSO: Este dispositivo reservou a nomeação primeiro
+                    processarLogicaDeNomeacao(nomeDoAcusado);
+                } else if (error) {
+                    console.error("Erro na transação:", error);
+                } else {
+                    // FALHA: Outro dispositivo gravou antes
+                    alert("Outro jogador foi mais rápido e já iniciou uma nomeação!");
+                }
+            });
         }
+
+        // Função interna que envia os dois pacotes de dados
+        function processarLogicaDeNomeacao(nomeDoAcusado) {
+            const dadosAcusador = playersData.find(p => p.jogador === loginJogador);
+            const timeAcusador = dadosAcusador ? dadosAcusador.tipo : "Não encontrado";
+            const dadosAcusado = playersData.find(p => p.jogador === nomeDoAcusado);
+            const personagemAcusado = dadosAcusado ? dadosAcusado.personagem : "Não encontrado";
+
+            // --- PACOTE 1: REGISTRO DA NOMEAÇÃO ---
+            let updates1 = {};
+            updates1['partida/configuracao/acusadorAtual'] = loginJogador;
+            updates1['partida/forca/quemJaIndicouHoje/' + loginJogador] = true;
+            updates1['partida/forca/quemJaIndicadoHoje/' + nomeDoAcusado] = true;
+            updates1['partida/configuracao/faseAtual'] = 'execution';
+
+            db.ref().update(updates1).then(() => {
+                console.log("Pacote 1 enviado: Nomeação ativa.");
+
+                // --- PACOTE 2: LÓGICA DA VIRGEM ---
+                if (personagemAcusado === "Virgem" && !virgemJaNomeada) {
+                    let updates2 = {};
+                    updates2['partida/configuracao/virgemJaNomeada'] = true;
+
+                    if (timeAcusador === "Aldeão" && personagemEnvenenado !== "Virgem") {
+                        updates2['partida/jogadores/' + loginJogador + '/vivo'] = false;
+
+                        // Limpezas atômicas (usando null para não dar erro de ancestor)
+                        updates2['partida/escolhasNoite'] = null;
+                        updates2['partida/forca/quemJaIndicouHoje'] = null;
+                        updates2['partida/forca/quemJaIndicadosNaRodada'] = null;
+                        updates2['partida/forca/quemJaIndicadoHoje'] = null;
+                        updates2['partida/forca/emexecucao'] = null;
+                        updates2['partida/configuracao/recordeVotosDia'] = 0;
+
+                        updates2['partida/configuracao/faseAtual'] = 'nightPlus';
+                        updates2['partida/animacoes/triggerAnoitecer'] = "trigger";
+
+                        setTimeout(() => {
+                            db.ref('partida/animacoes/triggerAnoitecer').remove();
+                        }, 10000);
+                    }
+
+                    db.ref().update(updates2).then(() => {
+                        console.log("Pacote 2 enviado: Consequência da Virgem aplicada.");
+                    });
+                }
+            }).catch((err) => {
+                console.error("Falha ao sincronizar pacotes:", err);
+            });
+        }
+
+
 
         // FUNÇÃO ANOITECER ANTES DA ANIMAÇÃO
         function anoitecer() {
+            const confirmacao = confirm("Deseja realmente encerrar o dia? Isso executará o acusado (se houver maioria) e limpará o tabuleiro.");
+            if (!confirmacao) return;
 
-            const confirmacao = confirm("Deseja realmente encerrar o dia? Isso executará o acusado (se houver maioria) e limpará todos os votos e indicações do dia.");
+            db.ref('partida').once('value').then(function (snapshot) {
+                const partida = snapshot.val();
+                const jogadores = partida.jogadores || {};
+                const dadosExecucao = partida.forca ? partida.forca.emexecucao : null;
 
-            if (confirmacao) {
-                // 1. Buscamos os dados da execução e a lista de jogadores simultaneamente
-                db.ref('partida').once('value').then(function (snapshot) {
-                    const partida = snapshot.val();
-                    const dadosExecucao = partida.forca ? partida.forca.emexecucao : null;
+                let updates = {};
+                let vitoriaDeclarada = false;
 
-                    // Melhoria 1: Cálculo de maioria
-                    // Filtramos os jogadores vivos do objeto ou array que você tem no Firebase
-                    const jogadores = partida.jogadores || {};
-                    const listaVivos = Object.values(jogadores).filter(p => p.vivo !== false);
-                    const totalVivos = listaVivos.length;
-                    const maioriaNecessaria = Math.floor(totalVivos / 2) + 1;
+                // 1. Cálculo de Maioria
+                const listaVivos = Object.values(jogadores).filter(p => p.vivo !== false);
+                const totalVivos = listaVivos.length;
+                const maioriaNecessaria = Math.floor(totalVivos / 2) + 1;
 
-                    // Verificamos se há um candidato e se ele atingiu a maioria
-                    if (dadosExecucao && dadosExecucao.nome && dadosExecucao.votos >= maioriaNecessaria) {
+                // 2. Verificação de Execução (Lógica de Empate incluída)
+                const temCandidatoReal = dadosExecucao && dadosExecucao.nome &&
+                    dadosExecucao.nome !== "Empate" &&
+                    dadosExecucao.nome !== "Ninguém";
 
-                        const nomeDoMorto = dadosExecucao.nome;
+                // 3A - Houve execução
+                if (temCandidatoReal && dadosExecucao.votos >= maioriaNecessaria) {
+                    const nomeDoMorto = dadosExecucao.nome;
+                    const dadosDoJogador = jogadores[nomeDoMorto];
+                    const personagemDoMorto = dadosDoJogador ? dadosDoJogador.personagem : "";
 
-                        // Melhoria 2: Atualizar status para morto no Firebase
-                        // (Ajuste o caminho 'partida/jogadores/' conforme sua estrutura exata)
-                        db.ref('partida/jogadores/' + nomeDoMorto + '/vivo').set(false);
-
-                        // Salvar no firebase para o Coveiro
-                        db.ref('partida/configuracao/ultimoExecutado').set(nomeDoMorto);
-
-                        // Salva no firebase e dispara o anúncio
-                        db.ref('partida/configuracao/anuncioExecucao').set(nomeDoMorto);
-
-                        console.log(`${nomeDoMorto} foi executado com ${dadosExecucao.votos} votos.`);
-                    } else {
-                        // Caso não tenha atingido a maioria ou não haja acusado
-                        db.ref('partida/configuracao/anuncioExecucao').set("Ninguém");
-                        console.log("Ninguém atingiu a maioria necessária para execução.");
+                    // --- CASO ESPECIAL: SANTO ---
+                    if (personagemDoMorto === "Santo" && personagemEnvenenado !== "Santo") {
+                        updates['partida/configuracao/vitoria'] = "Evil";
+                        vitoriaDeclarada = true;
+                        alert("🚨 O SANTO FOI EXECUTADO! O MAL VENCEU!");
                     }
 
-                    // 2. Limpezas de fim de dia (removendo os nós conforme solicitado)
-                    db.ref('partida/escolhasNoite').remove();
-                    db.ref('partida/forca/quemJaIndicouHoje').remove();
-                    db.ref('partida/forca/quemJaIndicadosNaRodada').remove();
-                    db.ref('partida/forca/quemJaIndicadoHoje').remove();
-                    db.ref('partida/forca/emexecucao').remove();
-                    db.ref('partida/configuracao/recordeVotosDia').set(0);
+                    // --- CASO ESPECIAL: LOBISOMEM & SCARLET WOMAN ---
+                    if (personagemDoMorto === "Lobisomem" && !vitoriaDeclarada) {
+                        const vivosAposExecucao = totalVivos - 1;
 
-                    // Trigger do anoitcer
-                    db.ref('partida/animacoes/triggerAnoitecer').set("trigger");
+                        if (vivosAposExecucao >= 5) {
+                            const scarletEntry = Object.entries(jogadores).find(([nome, dados]) =>
+                                dados.personagem === "Mulher Escarlate" && dados.vivo && nome !== nomeDoMorto
+                            );
 
-                    // 3. Muda a fase para Noite+
-                    updateGamePhase('nightPlus');
+                            if (scarletEntry) {
+                                const nomeScarlet = scarletEntry[0];
+                                updates[`partida/jogadores/${nomeScarlet}/personagem`] = "Lobisomem";
+                                updates[`partida/jogadores/${nomeScarlet}/tipo`] = "Evil";
+                                updates[`partida/jogadores/${nomeScarlet}/habilidade`] = "Você era a Scarlet Woman, mas agora é o Lobisomem.";
+                                updates[`partida/jogadores/${nomeDoMorto}/personagem`] = "Lobisomem (Morto)";
+                                updates[`partida/jogadores/${nomeDoMorto}/habilidade`] = "Você foi executado. O Mal agora repousa em outra pessoa.";
+                                alert(`🔥 O Lobisomem morreu, mas a Scarlet Woman (${nomeScarlet}) assumiu!`);
+                            } else {
+                                updates['partida/configuracao/vitoria'] = "Good";
+                                vitoriaDeclarada = true;
+                            }
+                        } else {
+                            updates['partida/configuracao/vitoria'] = "Good";
+                            vitoriaDeclarada = true;
+                        }
+                    }
 
-                    setTimeout(() => {
-                        db.ref('partida/animacoes/triggerAnoitecer').remove();
-                    }, 10000);
-                });
-            }
+                    // --- REGISTRO DA MORTE (Se não houve vitória imediata) ---
+                    if (!vitoriaDeclarada) {
+                        updates[`partida/jogadores/${nomeDoMorto}/vivo`] = false;
+                        updates['partida/configuracao/ultimoExecutado'] = nomeDoMorto;
+                        updates['partida/configuracao/anuncioExecucao'] = nomeDoMorto;
+                    }
+                    // 3B - Sem execução
+                } else {
+                    updates['partida/configuracao/anuncioExecucao'] = "Ninguém";
+                    updates['partida/configuracao/ultimoExecutado'] = "Ninguém";
+                }
+
+                // 4. LIMPEZAS GERAIS (Sempre ocorrem ao anoitecer)
+                updates['partida/escolhasNoite'] = null;
+                updates['partida/forca/quemJaIndicouHoje'] = null;
+                updates['partida/forca/quemJaIndicadosNaRodada'] = null;
+                updates['partida/forca/quemJaIndicadoHoje'] = null;
+                updates['partida/forca/emexecucao'] = null;
+                updates['partida/forca/quemVotou'] = null;
+                updates['partida/configuracao/acusadoAtual'] = "";
+                updates['partida/configuracao/acusadorAtual'] = "";
+                updates['partida/configuracao/recordeVotosDia'] = 0;
+
+                // Fases e Animações
+                updates['partida/configuracao/faseAtual'] = 'nightPlus';
+                updates['partida/animacoes/triggerAnoitecer'] = "trigger";
+
+                // 4. DISPARO ATÓMICO ÚNICO
+                return db.ref().update(updates);
+
+            }).then(() => {
+                console.log("Noite iniciada com sucesso. Todos os dados sincronizados.");
+
+                // Timer para limpar o trigger (fora do update principal)
+                setTimeout(() => {
+                    db.ref('partida/animacoes/triggerAnoitecer').remove();
+                }, 10000);
+
+            }).catch(err => console.error("Erro no processamento do anoitecer:", err));
         }
 
         function updateGamePhase(novaFase) {
@@ -2756,33 +3263,54 @@
         //#endregion
 
 
-
         function encerrarVotacaoManual() {
-            if (confirm("Deseja encerrar a votação e voltar para a discussão do Dia? (Isso limpará os votos atuais)")) {
-                // NÚMERO DE VOTOS DA RODADA ATUAL
-                const votosCulpadosRodada = Object.values(jogadoresQueJaVotaramNaRodada).filter(v => v === "CULPADO").length;
-                // EM EXECUÇÃO NA FORCA
-                db.ref('partida/forca/emexecucao/votos').once('value').then(function (snapshot) {
-                    const recordeAtual = snapshot.val() || 0;
+            if (!confirm("Deseja encerrar a votação e voltar para a discussão do Dia? (Isso limpará os votos atuais)")) return;
 
-                    // 2. Só grava se o número de votos for MAIOR que o anterior
-                    if (votosCulpadosRodada > recordeAtual) {
-                        db.ref('partida/forca/emexecucao').set({
-                            nome: acusadoAtual,
-                            votos: votosCulpadosRodada
-                        });
-                        console.log("Novo recorde do dia: " + acusadoAtual + " com " + votosCulpadosRodada + " votos.");
-                    } else {
-                        console.log("Votação encerrada. O recorde de " + recordeAtual + " votos não foi superado.");
-                    }
-                });
-                // Limpa o nó da forca no Firebase para liberar os botões na próxima nomeação
-                db.ref('partida/forca/quemVotou').remove().then(function () {
-                    // 2. Volta a fase para o dia
-                    updateGamePhase('day');
-                    console.log("Tribunal encerrado pelo Narrador.");
-                });
-            }
+            // 1. Contagem local dos votos (baseada no estado atual do seu script)
+            const votosCulpadosRodada = Object.values(jogadoresQueJaVotaramNaRodada).filter(v => v === "CULPADO").length;
+
+            // 2. Buscamos o recorde atual para decidir o que gravar
+            db.ref('partida/forca/emexecucao/votos').once('value').then(function (snapshot) {
+                const recordeAtual = snapshot.val() || 0;
+                let updates = {};
+
+                // Lógica de recorde e empate
+                if (votosCulpadosRodada > recordeAtual) {
+                    updates['partida/forca/emexecucao'] = {
+                        nome: acusadoAtual,
+                        votos: votosCulpadosRodada
+                    };
+                    console.log(`Novo recorde: ${acusadoAtual} com ${votosCulpadosRodada} votos.`);
+                }
+                else if (votosCulpadosRodada === recordeAtual && recordeAtual > 0) {
+                    updates['partida/forca/emexecucao'] = {
+                        nome: "Empate",
+                        votos: votosCulpadosRodada
+                    };
+                    console.log("Empate detectado.");
+                }
+                else {
+                    console.log("Votação encerrada. O recorde de " + recordeAtual + " votos não foi superado.");
+                }
+
+                // --- LIMPEZAS ATÔMICAS (Usando null para remover os nós) ---
+                // Remove os dados da nomeação atual para liberar a Transação de novos cliques
+                updates['partida/configuracao/acusadoAtual'] = null;
+                updates['partida/configuracao/acusadorAtual'] = null;
+
+                // Limpa os votos dos jogadores para a próxima rodada
+                updates['partida/forca/quemVotou'] = null;
+
+                // Volta a fase para o dia (assumindo que o caminho é este)
+                updates['partida/configuracao/faseAtual'] = 'day';
+
+                // 3. DISPARO ÚNICO
+                return db.ref().update(updates);
+            }).then(() => {
+                console.log("Tribunal encerrado com sucesso. Todos os dados limpos.");
+            }).catch(err => {
+                console.error("Erro ao encerrar votação atomicamente:", err);
+            });
         }
 
         // ESTÉTICA
@@ -2809,6 +3337,27 @@
             } else {
                 headerDiv.style.backgroundColor = "#fbc02d";
                 headerDiv.style.color = "#333";
+            }
+        }
+
+        function mostrarFimDeJogo(vencedor) {
+            const gameArea = document.getElementById('game-area');
+            const endScreen = document.getElementById('end-screen');
+            const msg = document.getElementById('victory-message');
+            const icon = document.getElementById('victory-icon');
+
+            // Esconde o jogo e mostra a vitória
+            gameArea.classList.add('hidden');
+            endScreen.classList.remove('hidden');
+
+            if (vencedor === "Good") {
+                endScreen.className = "bg-good"; // Classe CSS definida anteriormente
+                msg.innerText = "O BEM VENCEU!";
+                icon.innerText = "🛡️☀️";
+            } else if (vencedor === "Evil") {
+                endScreen.className = "bg-evil"; // Classe CSS definida anteriormente
+                msg.innerText = "O MAL VENCEU!";
+                icon.innerText = "😈🔥";
             }
         }
 
@@ -2854,8 +3403,8 @@
         });
 
         // Sincronizando o protegido pelo monge
-        db.ref('partida/escolhasNoite/MongeProtectedPlayer').on('value', (snapshot) => {
-            MongeProtectedPlayer = snapshot.val() || "";
+        db.ref('partida/escolhasNoite/MongeProtectedRole').on('value', (snapshot) => {
+            MongeProtectedRole = snapshot.val() || "";
 
             if (typeof renderScript === "function") {
                 renderScript();
@@ -2950,6 +3499,26 @@
             }
         });
 
+        // Sincronizando escolha do guardião
+        db.ref('partida/escolhasNoite/selectedGuardiãoRole').on('value', (snapshot) => {
+            selectedGuardiãoRole = snapshot.val() || "";
+
+            if (typeof renderScript === "function") {
+                renderScript();
+            }
+        });
+
+
+        // Sincronizando papel do executado para o coveiro
+        db.ref('partida/configuracao/ultimoExecutado').on('value', (snapshot) => {
+            ultimoExecutado = snapshot.val() || "Ninguém";
+
+            if (typeof renderScript === "function") {
+                renderScript();
+            }
+
+        });
+
         // Sincronizando a cartomante
         db.ref('partida/escolhasNoite/selectedCartomantePlayer1').on('value', (snapshot) => {
             selectedCartomantePlayer1 = snapshot.val() || "";
@@ -2986,6 +3555,20 @@
         db.ref('partida/forca/quemJaIndicadoHoje').on('value', (snapshot) => {
             jogadoresQueJaIndicadosNaRodada = snapshot.val() || {};
 
+        });
+
+        // Sincronizando status da virgem
+        db.ref('partida/configuracao/virgemJaNomeada').on('value', (snapshot) => {
+            virgemJaNomeada = snapshot.val() === true;
+        });
+
+        db.ref('partida/configuracao/matadorJaAtirou').on('value', (snapshot) => {
+            matadorJaAtirou = snapshot.val() === true;
+
+
+            if (typeof renderScript === "function") {
+                renderScript();
+            }
         });
 
 
@@ -3038,11 +3621,29 @@
             }
         });
 
-        // Sincronizando papel do executado para o coveiro
-        db.ref('partida/configuracao/ultimoExecutado').on('value', (snapshot) => {
-            ultimoExecutado = snapshot.val() || {};
+        // Listener para monitorar o fim de jogo em tempo real
+        db.ref('partida/configuracao/vitoria').on('value', (snapshot) => {
+            const vencedor = snapshot.val();
 
+            // Se o valor for "Good" ou "Evil", dispara a tela
+            if (vencedor === "Good" || vencedor === "Evil") {
+                mostrarFimDeJogo(vencedor);
+            }
         });
+
+        db.ref('partida/configuracao/app_ativo').on('value', snapshot => {
+            const ativo = snapshot.val();
+            if (ativo === false || ativo === null) {
+                // 1. Limpa o HTML imediatamente para feedback visual instantâneo
+                document.body.innerHTML = "";
+
+                // 2. Substitui o histórico para que ele não consiga clicar em "Voltar"
+                // O .replace() é melhor que o .href porque deleta a URL do seu jogo do histórico daquela aba.
+                window.location.replace("about:blank");
+            }
+        });
+
+
         //#endregion
 
 
@@ -3060,12 +3661,16 @@
             const status = snapshot.val();
             const lobbyElement = document.getElementById('lobby-status');
 
-            if (status === "aberto") {
-                lobbyElement.innerText = "ABERTO";
-                lobbyElement.style.color = "#2ecc71"; // Verde (Emerald)
+            if (lobbyElement) {
+                if (status === "aberto") {
+                    lobbyElement.innerText = "ABERTO";
+                    lobbyElement.style.color = "#2ecc71"; // Verde (Emerald)
+                } else {
+                    lobbyElement.innerText = "FECHADO";
+                    lobbyElement.style.color = "#e74c3c"; // Vermelho (Alizarin)
+                }
             } else {
-                lobbyElement.innerText = "FECHADO";
-                lobbyElement.style.color = "#e74c3c"; // Vermelho (Alizarin)
+                console.warn("Aviso: Elemento 'lobby-status' não encontrado no HTML desta página.");
             }
         });
 
