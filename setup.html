@@ -227,6 +227,8 @@
     </button>
   </div>
 
+  <div id="lista-senhas"></div>
+
   <div id="snackbar"></div>
 
   <script>
@@ -494,6 +496,8 @@
     }
 
     // FIREBASE
+    let senhasSorteadas = {};
+
     function enviarParaFirebase() {
       // Recupera os dados que foram salvos no LocalStorage durante o validateSetup
       const jogoData = JSON.parse(localStorage.getItem("setup_botc"));
@@ -519,6 +523,8 @@
           // SORTEIO DA SENHA: Gera um número entre 1000 e 9999
           const senhaSorteada = Math.floor(1000 + Math.random() * 9000).toString();
 
+          senhasSorteadas[p.jogador] = senhaSorteada;
+
           updates['partida/jogadores/' + nomeChave] = {
             personagem: p.personagem,
             tipo: p.tipo,
@@ -532,8 +538,20 @@
         db.ref().update(updates)
           .then(() => showMsg("🔥 Sincronizado com os celulares!"))
           .catch((err) => showMsg("Erro ao enviar: " + err, true));
+          mostrarSenhasLocalmente(senhasSorteadas);
       });
     }
+
+    function mostrarSenhasLocalmente(dicionario) {
+    const container = document.getElementById("lista-senhas");
+    container.innerHTML = "";
+
+    Object.entries(dicionario).forEach(([nome, senha]) => {
+        const div = document.createElement("div");
+        div.textContent = `${nome}: ${senha}`;
+        container.appendChild(div);
+    });
+  }
 
     
   </script>
