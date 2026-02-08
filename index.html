@@ -1430,6 +1430,9 @@
 
                 // --- CENÁRIO A: MORTO ---
                 if (!LavadeiraVivo) {
+                    if (navigator.vibrate) {
+                        navigator.vibrate(500);
+                    }
                     addStep("Lavadeira", `Lavadeira (${nomeRealLavadeira})`, "👻", "bg-dead", `
                     <div style="background:#546e7a; color:white; padding:15px; border-radius:8px; text-align:center; margin-top:10px;">
                         <div style="font-size: 24px;">👻</div>
@@ -2126,7 +2129,7 @@
                 }
 
                 // --- CENÁRIO B: AGUARDANDO ETAPAS ANTERIORES ---
-                else if (aguardandoVeneno) {
+                else if (aguardandoLobisomem) {
                     addAldeãoStep("Cartomante", `Cartomante (${nomeRealCartomante})`, "🔮", "bg-Aldeão", `
                     <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
                         🔮 Preparando as cartas... <br>
@@ -2605,19 +2608,6 @@
                     .then(() => {
                         console.log(`[FIREBASE] Veneno registrado: ${target}`);
 
-                        // 2. Atualiza a variável local (para lógica imediata se necessário)
-                        // personagemEnvenenado = target;
-
-                        // 3. Trava a Interface do Usuário (Visual Feedback)
-                        selectElement.style.display = 'none'; // Esconde o dropdown para evitar trocas
-
-                        feedback.innerHTML = `
-                    <div style="background:#4A148C; color:white; padding:10px; border-radius:5px; margin-top:10px; font-weight:bold;">
-                        🧪 VENENO APLICADO: ${jogadorEnvenenado}
-                    </div>
-                `;
-
-                        // Notificação discreta de sucesso
                         if (typeof showToast === "function") showToast(`Alvo ${jogadorEnvenenado} confirmado.`);
                     })
                     .catch(error => {
