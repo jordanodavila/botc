@@ -1148,6 +1148,7 @@
 
                 const dadosEnvenenador = playersData.find(p => p.personagem === "Envenenador");
                 const nomeRealEnvenenador = dadosEnvenenador ? dadosEnvenenador.jogador : "N/A";
+                const urlImagem = "icons/Icon_poisoner.png";
 
                 // CENÁRIO A: MORTO
                 if (!envenenadorVivo) {
@@ -1166,7 +1167,7 @@
                     const nomeAlvo = dadosAlvo ? dadosAlvo.jogador : personagemEnvenenado;
 
                     addStep(
-                        "Envenenador", `Envenenador (${nomeRealEnvenenador})`, "🧪", "bg-envenenador", `
+                        "Envenenador", `Envenenador (${nomeRealEnvenenador})`, `<img src="${urlImagem}" style="width:35px; vertical-align:middle;">`, "bg-envenenador", `
                     <div class="instruction" style="font-size: 10px;">Habilidade: Cada noite, escolha um jogador: ele estará envenenado.</div>
                     <div style="background:#4A148C; color:white; padding:10px; border-radius:5px; margin-top:10px; font-weight:bold; text-align:center;">
                         🧪 VENENO APLICADO: ${nomeAlvo}
@@ -1180,7 +1181,7 @@
                         options += `<option value="${p.personagem}">${p.jogador}</option>`;
                     });
 
-                    addStep("Envenenador", `Envenenador (${nomeRealEnvenenador})`, "🧪", "bg-envenenador", `
+                    addStep("Envenenador", `Envenenador (${nomeRealEnvenenador})`, `<img src="${urlImagem}" style="width:35px; vertical-align:middle;">`, "bg-envenenador", `
                 <div class="instruction" style="font-size: 10px;">Habilidade: Cada noite, escolha um jogador: ele estará envenenado.</div>
                 <div class="instruction">📢 "Envenenador, escolha alguém para envenenar e perder a habilidade."</div>
                 <div class="instruction italic">👉 Escolha uma opção abaixo.</div>
@@ -1196,7 +1197,7 @@
                 const dadosEnvenenador = playersData.find(p => p.personagem === "Envenenador");
                 const nomeRealEnvenenador = dadosEnvenenador.jogador;
 
-                addStep("Envenenador", `Envenenador (${nomeRealEnvenenador})`, "🧪", "bg-envenenador", `
+                addStep("Envenenador", `Envenenador (${nomeRealEnvenenador})`, `<img src="${urlImagem}" style="width:35px; vertical-align:middle;">`, "bg-envenenador", `
                 <div class="instruction" style="font-size: 10px;">Habilidade: Cada noite, escolha um jogador: ele estará envenenado."</div>
                 <div class="instruction">📢 "Envenenador está escolhendo no dispositivo dele..."</div>
                 <div style="background: #e3f2fd; padding: 10px; border-radius: 5px; margin-top: 10px; border-left: 5px solid #2196F3;">
@@ -2273,6 +2274,35 @@
             `);
             }
 
+            // --- MATADOR ---
+            if ((isDay || isExecution) && rolesInPlay.includes("Matador") && loginPersonagem == "Matador" && MatadorVivo) {
+                const dadosMatador = playersData.find(p => p.personagem === "Matador");
+                const nomeRealMatador = dadosMatador.jogador;
+                // --- CENÁRIO A: JÁ ATIROU ---
+                if (matadorJaAtirou) {
+                    addAldeãoStep("Matador", `Matador (${nomeRealMatador})`, "🏹", "bg-Aldeão", `
+                    <div style="text-align:center; opacity:0.6;">
+                        <p>Sua aljava está vazia. O tiro já foi disparado.</p>
+                    </div>
+                `);
+                    // --- CENÁRIO B: HABILIDADE NORMAL (NÃO ATIROU) ---
+                } else {
+                    let options = '<option value="">Selecione o alvo...</option>';
+                    vivos.forEach(p => {
+                        // Dica: Impedir que ele atire em si mesmo (opcional mas recomendado)
+                        if (p.jogador !== loginJogador) {
+                            options += `<option value="${p.jogador}">${p.jogador}</option>`;
+                        }
+                    });
+
+                    addAldeãoStep("Matador", `Matador (${nomeRealMatador})`, "🏹", "bg-Aldeão", `
+                    <div class="instruction" style="font-size: 10px;">Habilidade: Uma vez por jogo, durante o dia, escolha <b><u>publicamente</u></b> um jogador: se ele for o Lobisomem, ele morre.</div>
+                    <div class="instruction">Você tem um tiro de prata. Se acertar o Lobisomem, a aldeia vence.</div>
+                    <select onchange="dispararTiroMatador(this)">${options}</select>
+                    `);
+                }
+            }
+
 
             if (isDay) {
                 // 1. Primeiro o Card de Resumo (Amanhecer)
@@ -2456,35 +2486,6 @@
             ${botoesAcaoHtml}
         </div>
     `);
-            }
-
-            // --- MATADOR ---
-            if ((isDay || isExecution) && rolesInPlay.includes("Matador") && loginPersonagem == "Matador" && MatadorVivo) {
-                const dadosMatador = playersData.find(p => p.personagem === "Matador");
-                const nomeRealMatador = dadosMatador.jogador;
-                // --- CENÁRIO A: JÁ ATIROU ---
-                if (matadorJaAtirou) {
-                    addAldeãoStep("Matador", `Matador (${nomeRealMatador})`, "🏹", "bg-Aldeão", `
-                    <div style="text-align:center; opacity:0.6;">
-                        <p>Sua aljava está vazia. O tiro já foi disparado.</p>
-                    </div>
-                `);
-                    // --- CENÁRIO B: HABILIDADE NORMAL (NÃO ATIROU) ---
-                } else {
-                    let options = '<option value="">Selecione o alvo...</option>';
-                    vivos.forEach(p => {
-                        // Dica: Impedir que ele atire em si mesmo (opcional mas recomendado)
-                        if (p.jogador !== loginJogador) {
-                            options += `<option value="${p.jogador}">${p.jogador}</option>`;
-                        }
-                    });
-
-                    addAldeãoStep("Matador", `Matador (${nomeRealMatador})`, "🏹", "bg-Aldeão", `
-                    <div class="instruction" style="font-size: 10px;">Habilidade: Uma vez por jogo, durante o dia, escolha <b><u>publicamente</u></b> um jogador: se ele for o Lobisomem, ele morre.</div>
-                    <div class="instruction">Você tem um tiro de prata. Se acertar o Lobisomem, a aldeia vence.</div>
-                    <select onchange="dispararTiroMatador(this)">${options}</select>
-                    `);
-                }
             }
 
         }
@@ -2685,32 +2686,44 @@
         // --- FUNÇÃO MONGE ---
         function handleMongeProtect(selectElement) {
             const target = selectElement.value;
+            if (!target) return;
+
+            const updates = {};
             const feedback = document.getElementById('Monge-feedback');
 
-            if (target) {
-                // 1. Busca o nome do jogador para exibição amigável
-                const dadosAlvo = playersData.find(p => p.personagem === target);
-                const nomejogadorProtegido = dadosAlvo ? dadosAlvo.jogador : target;
+            // 1. Busca o nome do jogador para exibição amigável
+            const dadosAlvo = playersData.find(p => p.personagem === target);
+            const nomejogadorProtegido = dadosAlvo ? dadosAlvo.jogador : target;
 
-                // 2. Envia a escolha para o Firebase
-                firebase.database().ref('partida/escolhasNoite/MongeProtectedRole').set(target)
-                    .then(() => {
-                        console.log(`[FIREBASE] Proteção do Monge registrada: ${target}`);
+            // 2. Define o valor final baseado no status (Envenenado ou não)
+            let valorFinal = target;
 
-                        // Notificação discreta de sucesso
-                        if (typeof showToast === "function") showToast(`Proteção em ${nomejogadorProtegido} confirmada.`);
-                    })
-                    .catch(error => {
-                        console.error("Erro ao salvar proteção do Monge:", error);
-                        alert("Falha na conexão. Tente selecionar novamente.");
-                    });
-            }
-            // # REMOVER - JOGAR PARA UMA FUNÇÃO DE DECISÃO CHAMADA NA FUNÇÃO DE AMANHECER
             if (personagemEnvenenado === "Monge") {
-                console.log("personagemEnvenenado === Monge")
-                firebase.database().ref('partida/escolhasNoite/MongeProtectedRole').set("Falhou")
-                MongeProtectedRole = "Falhou"
+                console.log("Monge está envenenado/bêbado. Proteção falhou.");
+                valorFinal = "Falhou";
             }
+
+            // 3. Monta o objeto de updates
+            // Usamos o caminho completo para atualizar apenas este nó
+            updates['partida/escolhasNoite/MongeProtectedRole'] = valorFinal;
+
+            // 4. Executa o update atômico
+            firebase.database().ref().update(updates)
+                .then(() => {
+                    console.log(`[FIREBASE UPDATE] Monge: ${valorFinal}`);
+
+                    // Notificação de sucesso
+                    if (typeof showToast === "function") {
+                        const msg = (valorFinal === "Falhou")
+                            ? `Escolha registrada (Efeito nulo).`
+                            : `Proteção em ${nomejogadorProtegido} confirmada.`;
+                        showToast(msg);
+                    }
+                })
+                .catch(error => {
+                    console.error("Erro no update do Monge:", error);
+                    alert("Falha na conexão. Tente selecionar novamente.");
+                });
         }
 
         // --- FUNÇÃO LOBISOMEM ---
