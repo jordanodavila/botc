@@ -452,11 +452,11 @@
 
                 <div style="font-size: 20px; font-style: italic; text-align: center;">
                     "Na pacata e isolada vila de <span style="color: #d32f2f; font-weight: bold;">Ravenswood Bluff</span>, durante um temporal terrível, um grito ecoa pela noite.<br> No centro da praça do vilarejo, sob a sombra da velha torre do relógio, os moradores se reúnem para encontrar uma cena aterrorizante: o contador da vila foi empalado nos ponteiros do relógio.<br>
-O <span style="color: #d32f2f; font-weight: bold;">sangue</span> escorre pelas engrenagens, mas o pior ainda está por vir. Entre os olhares de choque e tristeza, percebe-se a terrível verdade: <span style="color: #d32f2f; font-weight: bold;">o Demônio está entre nós</span>.<br>
-Durante o dia, ele se esconde em plena vista, vestindo a pele de um vizinho, de um amigo ou de um ente querido. Ele sussurra mentiras, semeia a discórdia e, quando o sol se põe, ele <span style="color: #d32f2f; font-weight: bold;">mata</span> novamente.
-Vocês são os cidadãos desta vila. Alguns possuem habilidades únicas, outros apenas a força de sua voz e seu voto.<br>
-Sua missão é simples, mas desesperadora: <span style="color: #d32f2f; font-weight: bold;">encontrar o mal</span> antes que não reste mais ninguém para contar a história.
-Durmam agora, cidadãos... pois a noite pertence ao Demônio.
+                    O <span style="color: #d32f2f; font-weight: bold;">sangue</span> escorre pelas engrenagens, mas o pior ainda está por vir. Entre os olhares de choque e tristeza, percebe-se a terrível verdade: <span style="color: #d32f2f; font-weight: bold;">o Lobisomem está entre nós</span>.<br>
+                    Durante o dia, ele se esconde em plena vista, vestindo a pele de um vizinho, de um amigo ou de um ente querido. Ele sussurra mentiras, semeia a discórdia e, quando o sol se põe, ele <span style="color: #d32f2f; font-weight: bold;">mata</span> novamente.
+                    Vocês são os cidadãos desta vila. Alguns possuem habilidades únicas, outros apenas a força de sua voz e seu voto.<br>
+                    Sua missão é simples, mas desesperadora: <span style="color: #d32f2f; font-weight: bold;">encontrar o mal</span> antes que não reste mais ninguém para contar a história.
+                    Durmam agora, cidadãos... pois a noite pertence ao Lobisomem.
                 </div>
 
                 <div style="
@@ -1033,7 +1033,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
                 card.style = `background: ${bgColor}; opacity: ${opacity}; ${grayscale} border-left: 5px solid ${isDead ? '#9e9e9e' : '#4CAF50'};`;
 
                 card.innerHTML = `
-            <div class="row" style="display: flex; justify-content: space-between; align-items: center;">
+                <div class="row" style="display: flex; justify-content: space-between; align-items: center;">
                 <div class="col">
                     <div class="player-name" style="font-weight: bold; font-size: 1.1em;">
                         ${isDead ? '💀 ' : ''}${p.personagem}
@@ -1041,18 +1041,6 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
                     <div class="player-user" style="color: #666; font-size: 0.9em;">Jogador: ${p.jogador}</div>
                 </div>
                 
-                <div style="display: flex; gap: 5px;">
-                    <button class="btn-toggle" onclick="toggleDeath(${index})"
-                            style="background:${isDead ? '#555' : '#d32f2f'}; color:white; border:none; padding: 6px 10px; border-radius: 4px; cursor: pointer;">
-                        ${isDead ? 'Ressuscitar' : 'Matar'}
-                    </button>
-                    
-                    <button class="btn-toggle btn-drunk ${isDrunk ? 'active' : ''}" 
-                            onclick="toggleDrunk(${index})"
-                            style="padding: 6px 10px; border-radius: 4px; cursor: pointer;">
-                        ${isDrunk ? '🥴 Bêbado' : 'Drunk'}
-                    </button>
-                </div>
             </div>
             
             <div class="ability-text" style="margin-top: 8px; font-size: 0.85em; ${isDead ? 'text-decoration: line-through; opacity: 0.5;' : ''}">
@@ -1099,6 +1087,8 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
             const isExecution = (currentPhase === "execution");
 
             const total = playersData.length;
+
+            // const urlImagemGhost = "icons/Icon_ghost.png";
 
             // 1. Verificamos se o Envenenador faz parte do jogo e está vivo
             const envenenadorEstaNoJogo = playersData.find(p => p.personagem === "Envenenador" && p.vivo !== false);
@@ -1196,8 +1186,9 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
             if (rolesInPlay.includes("Envenenador") && envenenadorVivo && (isNightOne || isNightPlus) && loginJogador == "NARRADOR") {
                 const dadosEnvenenador = playersData.find(p => p.personagem === "Envenenador");
                 const nomeRealEnvenenador = dadosEnvenenador.jogador;
+                const urlImagem = "icons/Icon_poisoner.png";
 
-                addStep("Envenenador", `Envenenador (${nomeRealEnvenenador})`, `<img src="${urlImagem}" style="width:35px; vertical-align:middle;">`, "bg-envenenador", `
+                addStep("Envenenador", `Envenenador (${nomeRealEnvenenador})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-envenenador", `
                 <div class="instruction" style="font-size: 10px;">Habilidade: Cada noite, escolha um jogador: ele estará envenenado."</div>
                 <div class="instruction">📢 "Envenenador está escolhendo no dispositivo dele..."</div>
                 <div style="background: #e3f2fd; padding: 10px; border-radius: 5px; margin-top: 10px; border-left: 5px solid #2196F3;">
@@ -1209,9 +1200,10 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
 
             // --- MONGE ---
             // --- JOGADOR ---
-            if (rolesInPlay.includes("Monge") && (loginPersonagem == "Monge" || loginJogador == "NARRADOR")) {
+            if (rolesInPlay.includes("Monge") && (isNightOne || isNightPlus) && (loginPersonagem == "Monge" || loginJogador == "NARRADOR")) {
                 const dadosMonge = playersData.find(p => p.personagem === "Monge");
                 const nomeRealMonge = dadosMonge ? dadosMonge.jogador : "---";
+                const urlImagem = "icons/Icon_monk.png";
 
                 // CENÁRIO A: MORTO
                 if (!MongeVivo) {
@@ -1226,7 +1218,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
 
                 // --- CENÁRIO B: PRIMEIRA NOITE SEM HABILIDADE ---
                 else if (isNightOne) {
-                    addAldeãoStep("Monge", `Monge (${nomeRealMonge})`, "🛡️", "bg-Aldeão", `
+                    addAldeãoStep("Monge", `Monge (${nomeRealMonge})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Aldeão", `
                     <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
                         ❌ Você não tem habilidade na primeira noite. <br>
                     </div>
@@ -1235,7 +1227,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
 
                 // --- CENÁRIO C: AGUARDANDO PASSO ANTERIOR ---
                 else if (aguardandoVeneno && isNightPlus) {
-                    addAldeãoStep("Monge", "Monge", "🛡️", "bg-Aldeão", `
+                    addAldeãoStep("Monge", "Monge", `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Aldeão", `
                     <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
                         🧪 O Envenenador está agindo... <br>
                         Aguarde sua vez de proteger a vila.
@@ -1247,7 +1239,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
                     const dadosAlvo = playersData.find(p => p.personagem === MongeProtectedRole);
                     const nomeAlvo = dadosAlvo ? dadosAlvo.jogador : MongeProtectedRole;
 
-                    addAldeãoStep("Monge", `Monge (${nomeRealMonge})`, "🛡️", "bg-Aldeão", `
+                    addAldeãoStep("Monge", `Monge (${nomeRealMonge})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Aldeão", `
                     <div style="font-size:11px; color:#1E88E5; font-style:italic; margin-top: 5px; margin-bottom: 10px;">
                         Habilidade: Cada noite, escolha um jogador para proteger.
                     </div>
@@ -1268,7 +1260,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
                         }
                     });
 
-                    addAldeãoStep("Monge", `Monge (${nomeRealMonge})`, "🛡️", "bg-Aldeão", `
+                    addAldeãoStep("Monge", `Monge (${nomeRealMonge})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Aldeão", `
                     <div style="font-size:11px; color:#1E88E5; font-style:italic; margin-top: 5px; margin-bottom: 10px;">
                         Habilidade: Cada noite (exceto a primeira), escolha um jogador. Se o Lobisomem o matar, ele não morre.
                     </div>
@@ -1287,7 +1279,9 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
                 });
                 const dadosMonge = playersData.find(p => p.personagem === "Monge");
                 const nomeRealMonge = dadosMonge.jogador;
-                addAldeãoStep("Monge", `Monge (${nomeRealMonge})`, "🛡️", "bg-Aldeão", `
+                const urlImagem = "icons/Icon_monk.png";
+
+                addAldeãoStep("Monge", `Monge (${nomeRealMonge})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Aldeão", `
                 <div style="font-size:11px; color:#1E88E5; font-style:italic; margin-top: 5px; margin-bottom: 10px;">
                     Habilidade: Cada noite (exceto a primeira), escolha um jogador. Se o Lobisomem o matar, ele não morre. Você não pode escolher a si mesmo.
                 </div>
@@ -1398,6 +1392,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
             if (rolesInPlay.includes("Espião") && (isNightOne || isNightPlus) && (loginPersonagem == "Espião" || loginJogador == "NARRADOR")) {
                 const dadosEspião = playersData.find(p => p.personagem === "Espião");
                 const nomeRealEspião = dadosEspião.jogador;
+                const urlImagem = "icons/Icon_spy.png";
                 // --- CENÁRIO A: MORTO ---
                 if (!EspiãoVivo) {
                     addStep("Espião", `Espião (${nomeRealEspião})`, "👻", "bg-dead", `
@@ -1410,7 +1405,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
                 } else {
                     // --- CENÁRIO B: HABILIDADE ---
 
-                    addAldeãoStep("Espião", `Espião (${nomeRealEspião})`, "🕵️", "bg-Espião", `
+                    addAldeãoStep("Espião", `Espião (${nomeRealEspião})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Espião", `
                 <div class="instruction" style="font-size: 10px;">Habilidade: Cada noite, você vê o grimório (relação de jogadores e personagens da partida).</div>
                 <div class="instruction">📢 "Espião, você é capaz de ver o Grimório (lista acima com todos os jogadores e personagens)."</div>
                 <div class="instruction italic">👉 Veja o grimório.</div>
@@ -1428,6 +1423,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
                 const dadosLavadeira = playersData.find(p => p.personagem === "Lavadeira");
                 const nomeRealLavadeira = dadosLavadeira ? dadosLavadeira.jogador : "Lavadeira";
                 const LavadeiraVivo = dadosLavadeira ? dadosLavadeira.vivo !== false : false;
+                const urlImagem = "icons/Icon_washerwoman.png";
 
                 // --- CENÁRIO A: MORTO ---
                 if (!LavadeiraVivo) {
@@ -1442,16 +1438,25 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
                     </div>
                 `);
                 }
-                // --- CENÁRIO B: AGUARDANDO ETAPAS ANTERIORES ---
+                // --- CENÁRIO B: DEMAIS NOITES SEM HABILIDADE ---
+                else if (isNightPlus) {
+                    addAldeãoStep("Lavadeira", `Lavadeira (${nomeRealLavadeira})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Aldeão", `
+                    <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
+                        ❌ Você não tem habilidade nas demais noites. <br>
+                    </div>
+                `);
+                }
+
+                // --- CENÁRIO C: AGUARDANDO ETAPAS ANTERIORES ---
                 else if (isNightOne && aguardandoVeneno || !selectedLavadeiraRole || !selectedLavadeiraRealPlayer || !selectedLavadeiraFakePlayer) {
-                    addAldeãoStep("Lavadeira", `Lavadeira (${nomeRealLavadeira})`, "🧺", "bg-Aldeão", `
+                    addAldeãoStep("Lavadeira", `Lavadeira (${nomeRealLavadeira})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Aldeão", `
                     <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
                         🧺 Lavando as roupas do vilarejo... <br>
                         Aguarde para receber sua informação.
                     </div>
                 `);
                 }
-                // --- CENÁRIO C: ENVENENADO ---
+                // --- CENÁRIO D: ENVENENADO ---
                 else if (isNightOne && personagemEnvenenado === "Lavadeira") {
                     const opcoesFalsas = playersData
                         .filter(p => p.tipo === "Aldeão" && p.personagem !== selectedLavadeiraRole && p.personagem !== "Lavadeira")
@@ -1466,7 +1471,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
                         ? opcoesFalsas[semente % opcoesFalsas.length]
                         : "Bibliotecário";
 
-                    addAldeãoStep("Lavadeira", `Lavadeira (${nomeRealLavadeira})`, "🧺", "bg-Aldeão", `
+                    addAldeãoStep("Lavadeira", `Lavadeira (${nomeRealLavadeira})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Aldeão", `
                     <div class="instruction">📢 "${nomeRealLavadeira}, você começa sabendo de um aldeão, mas sem saber exatamente quem."</div>
                     <div class="instruction italic">👉 O personagem aldeão ${papelFalso} é ${selectedLavadeiraRealPlayer} ou ${selectedLavadeiraFakePlayer}.</div>
                     
@@ -1478,14 +1483,14 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
                     <div class="instruction italic" style="text-align:center;">👉 Um destes jogadores é ${papelFalso}.</div>
                 `);
                 }
-                // --- CENÁRIO D: HABILIDADE NORMAL ---
+                // --- CENÁRIO E: HABILIDADE NORMAL ---
                 else if (isNightOne) {
                     const sorteio = Math.floor(Math.random() * 2);
                     let textoLavadeira = (sorteio === 0)
                         ? `👉 O personagem aldeão ${selectedLavadeiraRole} é ${selectedLavadeiraRealPlayer} ou ${selectedLavadeiraFakePlayer}.`
                         : `👉 O personagem aldeão ${selectedLavadeiraRole} é ${selectedLavadeiraFakePlayer} ou ${selectedLavadeiraRealPlayer}.`;
 
-                    addAldeãoStep("Lavadeira", `Lavadeira (${nomeRealLavadeira})`, "🧺", "bg-Aldeão", `
+                    addAldeãoStep("Lavadeira", `Lavadeira (${nomeRealLavadeira})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Aldeão", `
                     <div class="instruction" style="font-size: 10px;">Habilidade: Você começa sabendo que 1 de 2 jogadores é Aldeão e qual o personagem.</div>
                     <div class="instruction">📢 "${nomeRealLavadeira}, você começa sabendo de um aldeão, mas sem saber exatamente quem."</div>
                     <div class="instruction italic">${textoLavadeira}</div>
@@ -1500,20 +1505,14 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
                     </div>
                 `);
                 }
-                // --- CENÁRIO E: DEMAIS NOITES SEM HABILIDADE ---
-                else if (isNightPlus) {
-                    addAldeãoStep("Lavadeira", `Lavadeira (${nomeRealLavadeira})`, "🧺", "bg-Aldeão", `
-                    <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
-                        ❌ Você não tem habilidade nas demais noites. <br>
-                    </div>
-                `);
-                }
+                
             }
 
             // --- NARRADOR ---
             if (rolesInPlay.includes("Lavadeira") && isNightOne && loginJogador == "NARRADOR") {
                 const dadosLavadeira = playersData.find(p => p.personagem === "Lavadeira");
                 const nomeRealLavadeira = dadosLavadeira.jogador;
+                const urlImagem = "icons/Icon_washerwoman.png";
                 //NOVO: DROPDOWN ALDEÕES PARA LAVADEIRA
                 let LavadeiraOptions = '';
                 playersData.filter(p => p.tipo === "Aldeão").forEach(p => {
@@ -1525,7 +1524,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
                     AllPlayersOptions += `<option value="${p.jogador}">${p.jogador} (${p.personagem})</option>`;
                 });
 
-                addAldeãoStep("Lavadeira", `Lavadeira (${nomeRealLavadeira})`, "🧺", tfColor, `
+                addAldeãoStep("Lavadeira", `Lavadeira (${nomeRealLavadeira})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, tfColor, `
                 <div class="instruction" style="font-size: 10px;">Habilidade: Você começa sabendo que 1 de 2 jogadores é Aldeão e qual o personagem.</div>
                 <div class="instruction italic">👉 Lavadeira, ${selectedLavadeiraRole} é o ${selectedLavadeiraRealPlayer} ou o ${selectedLavadeiraFakePlayer}.
                 <div class="instruction italic">👉 Narrador, escolha um personagem Aldeão específico que está em jogo (ex: quero mostrar a Lavadeira):</div>
@@ -1570,6 +1569,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
                 const dadosBibliotecário = playersData.find(p => p.personagem === "Bibliotecário");
                 const nomeRealBibliotecário = dadosBibliotecário ? dadosBibliotecário.jogador : "Bibliotecário";
                 const BibliotecárioVivo = dadosBibliotecário ? dadosBibliotecário.vivo !== false : false;
+                const urlImagem = "icons/Icon_librarian.png";
 
                 // --- CENÁRIO A: MORTO ---
                 if (!BibliotecárioVivo) {
@@ -1581,10 +1581,18 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
                     </div>
                 `);
                 }
+                // --- CENÁRIO B: DEMAIS NOITES SEM HABILIDADE ---
+                else if (isNightPlus) {
+                    addAldeãoStep("Bibliotecário", `Bibliotecário (${nomeRealBibliotecário})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Aldeão", `
+                    <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
+                        ❌ Você não tem habilidade nas demais noites. <br>
+                    </div>
+                `);
+                }
 
-                // --- CENÁRIO B: AGUARDANDO ETAPAS ANTERIORES ---
+                // --- CENÁRIO C: AGUARDANDO ETAPAS ANTERIORES ---
                 else if (isNightOne && aguardandoVeneno || !selectedBibliotecárioRole || !selectedBibliotecárioRealPlayer || !selectedBibliotecárioFakePlayer) {
-                    addAldeãoStep("Bibliotecário", `Bibliotecário (${nomeRealBibliotecário})`, "📚", "bg-Aldeão", `
+                    addAldeãoStep("Bibliotecário", `Bibliotecário (${nomeRealBibliotecário})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Aldeão", `
                     <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
                         📖 Consultando os arquivos da vila... <br>
                         Aguarde para receber sua informação.
@@ -1592,7 +1600,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
                 `);
                 }
 
-                // --- CENÁRIO C: ENVENENADO ---
+                // --- CENÁRIO D: ENVENENADO ---
                 else if (isNightOne && personagemEnvenenado === "Bibliotecário") {
                     const opcoesFalsas = playersData
                         .filter(p => p.tipo === "Forasteiro" && p.personagem !== selectedBibliotecárioRole && p.personagem !== "Bibliotecário")
@@ -1607,7 +1615,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
                         ? opcoesFalsas[semente % opcoesFalsas.length]
                         : "Bêbado";
 
-                    addAldeãoStep("Bibliotecário", `Bibliotecário (${nomeRealBibliotecário})`, "📚", "bg-Aldeão", `
+                    addAldeãoStep("Bibliotecário", `Bibliotecário (${nomeRealBibliotecário})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Aldeão", `
                     <div class="instruction" style="font-size: 10px;">Habilidade: Você começa sabendo que 1 de 2 jogadores é um Forasteiro.</div>
                     <div class="instruction">📢 "${nomeRealBibliotecário}, você localizou um forasteiro nos registros."</div>
                     <div class="instruction italic">👉 O personagem forasteiro ${papelFalso} é ${selectedBibliotecárioRealPlayer} ou ${selectedBibliotecárioFakePlayer}.</div>
@@ -1622,14 +1630,14 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
                 `);
                 }
 
-                // --- CENÁRIO D: HABILIDADE NORMAL ---
+                // --- CENÁRIO E: HABILIDADE NORMAL ---
                 else if (isNightOne) {
                     const sorteio = Math.floor(Math.random() * 2);
                     let textoBibliotecário = (sorteio === 0)
                         ? `👉 O personagem forasteiro ${selectedBibliotecárioRole} é ${selectedBibliotecárioRealPlayer} ou ${selectedBibliotecárioFakePlayer}.`
                         : `👉 O personagem forasteiro ${selectedBibliotecárioRole} é ${selectedBibliotecárioFakePlayer} ou ${selectedBibliotecárioRealPlayer}.`;
 
-                    addAldeãoStep("Bibliotecário", `Bibliotecário (${nomeRealBibliotecário})`, "📚", "bg-Aldeão", `
+                    addAldeãoStep("Bibliotecário", `Bibliotecário (${nomeRealBibliotecário})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Aldeão", `
                     <div class="instruction" style="font-size: 10px;">Habilidade: Você começa sabendo que 1 de 2 jogadores é um Forasteiro e qual o personagem.</div>
                     <div class="instruction">📢 "${nomeRealBibliotecário}, você localizou um forasteiro nos registros."</div>
                     <div class="instruction italic">${textoBibliotecário}</div>
@@ -1644,21 +1652,13 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
                     </div>
                 `);
                 }
-
-                // --- CENÁRIO E: DEMAIS NOITES SEM HABILIDADE ---
-                else if (isNightPlus) {
-                    addAldeãoStep("Bibliotecário", `Bibliotecário (${nomeRealBibliotecário})`, "📚", "bg-Aldeão", `
-                    <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
-                        ❌ Você não tem habilidade nas demais noites. <br>
-                    </div>
-                `);
-                }
             }
 
             // --- NARRADOR ---
             if (rolesInPlay.includes("Bibliotecário") && isNightOne && loginJogador == "NARRADOR") {
                 const dadosBibliotecário = playersData.find(p => p.personagem === "Bibliotecário");
                 const nomeRealBibliotecário = dadosBibliotecário.jogador;
+                const urlImagem = "icons/Icon_librarian.png";
                 // NOVO: DROPDOWN OUTSIDERS PARA BIBLIOTECÁRIO
                 let BibliotecárioOptions = '';
                 const outsidersInGame = playersData.filter(p => p.tipo === "Forasteiro");
@@ -1674,7 +1674,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
                     AllPlayersOptions += `<option value="${p.jogador}">${p.jogador} (${p.personagem})</option>`;
                 });
 
-                addAldeãoStep("Bibliotecário", `Bibliotecário (${nomeRealBibliotecário})`, "📚", tfColor, `
+                addAldeãoStep("Bibliotecário", `Bibliotecário (${nomeRealBibliotecário})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, tfColor, `
                 <div class="instruction" style="font-size: 10px;">Habilidade: Você começa sabendo que 1 de 2 jogadores é um Forasteiro e qual o personagem.</div>
                 <div class="instruction italic">👉 Mostre qual personagem Forasteiro específico que está em jogo (ex: quero mostrar o Santo)</div>
                 
@@ -1729,6 +1729,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
                 const dadosInvestigador = playersData.find(p => p.personagem === "Investigador");
                 const nomeRealInvestigador = dadosInvestigador ? dadosInvestigador.jogador : "Investigador";
                 const InvestigadorVivo = dadosInvestigador ? dadosInvestigador.vivo !== false : false;
+                const urlImagem = "icons/Icon_investigator.png";
 
                 // --- CENÁRIO A: MORTO ---
                 if (!InvestigadorVivo) {
@@ -1743,7 +1744,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
 
                 // --- CENÁRIO B: AGUARDANDO ETAPAS ANTERIORES ---
                 else if (isNightOne && aguardandoVeneno || !selectedInvestigadorRole || !selectedInvestigadorRealPlayer || !selectedInvestigadorFakePlayer) {
-                    addAldeãoStep("Investigador", `Investigador (${nomeRealInvestigador})`, "🔍", "bg-Aldeão", `
+                    addAldeãoStep("Investigador", `Investigador (${nomeRealInvestigador})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Aldeão", `
                     <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
                         🔍 Realizando investigação na vila... <br>
                         Aguarde para receber sua informação.
@@ -1767,7 +1768,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
                         ? opcoesFalsas[semente % opcoesFalsas.length]
                         : "Barão";
 
-                    addAldeãoStep("Investigador", `Investigador (${nomeRealInvestigador})`, "🔍", "bg-Aldeão", `
+                    addAldeãoStep("Investigador", `Investigador (${nomeRealInvestigador})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Aldeão", `
                     <div class="instruction" style="font-size: 10px;">Habilidade: Você começa sabendo que 1 de 2 jogadores é um Minion.</div>
                     <div class="instruction">📢 "${nomeRealInvestigador}, você descobriu um Minion nas investigações."</div>
                     <div class="instruction italic">👉 O personagem minion ${papelFalso} é ${selectedInvestigadorRealPlayer} ou ${selectedInvestigadorFakePlayer}.</div>
@@ -1791,7 +1792,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
                         ? `👉 O personagem minion ${selectedInvestigadorRole} é ${selectedInvestigadorRealPlayer} ou ${selectedInvestigadorFakePlayer}.`
                         : `👉 O personagem minion ${selectedInvestigadorRole} é ${selectedInvestigadorFakePlayer} ou ${selectedInvestigadorRealPlayer}.`;
 
-                    addAldeãoStep("Investigador", `Investigador (${nomeRealInvestigador})`, "🔍", "bg-Aldeão", `
+                    addAldeãoStep("Investigador", `Investigador (${nomeRealInvestigador})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Aldeão", `
                     <div class="instruction" style="font-size: 10px;">Habilidade: Você começa sabendo que 1 de 2 jogadores é um Minion e qual o personagem.</div>
                     <div class="instruction">📢 "${nomeRealInvestigador}, você descobriu um Minion nas investigações."</div>
                     <div class="instruction italic">${textoInvestigador}</div>
@@ -1810,7 +1811,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
 
                 // --- CENÁRIO E: DEMAIS NOITES SEM HABILIDADE ---
                 else if (isNightPlus) {
-                    addAldeãoStep("Investigador", `Investigador (${nomeRealInvestigador})`, "🔍", "bg-Aldeão", `
+                    addAldeãoStep("Investigador", `Investigador (${nomeRealInvestigador})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Aldeão", `
                     <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
                         ❌ Você não tem habilidade nas demais noites. <br>
                     </div>
@@ -1823,6 +1824,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
             if (rolesInPlay.includes("Investigador") && isNightOne && loginJogador == "NARRADOR") {
                 const dadosInvestigador = playersData.find(p => p.personagem === "Investigador");
                 const nomeRealInvestigador = dadosInvestigador.jogador;
+                const urlImagem = "icons/Icon_investigator.png";
                 // NOVO: DROPDOWN MINIONS PARA INVESTIGATOR
                 let InvestigadorOptions = '';
                 const minionsInGame = playersData.filter(p => p.tipo === "Minion");
@@ -1838,7 +1840,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
                     AllPlayersOptions += `<option value="${p.jogador}">${p.jogador} (${p.personagem})</option>`;
                 });
 
-                addAldeãoStep("Investigador", `Investigador (${nomeRealInvestigador})`, "🔍", tfColor, `
+                addAldeãoStep("Investigador", `Investigador (${nomeRealInvestigador})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, tfColor, `
                 <div class="instruction" style="font-size: 10px;">Habilidade: Você começa sabendo que 1 de 2 jogadores é um Minion e qual o personagem.</div>
                 <div class="instruction italic">👉 Mostre a ficha de um Minion específico que está em jogo:</div>
                 
@@ -1882,6 +1884,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
                 const dadosGuardião = playersData.find(p => p.personagem === "Guardião");
                 const nomeRealGuardião = dadosGuardião.jogador;
                 const GuardiãoVivo = dadosGuardião ? dadosGuardião.vivo !== false : false;
+                const urlImagem = "icons/Icon_ravenkeeper.png";
 
                 // --- CENÁRIO A: MORTO ---
                 if (!GuardiãoVivo) {
@@ -1896,7 +1899,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
 
                 // --- CENÁRIO B: PRIMEIRA NOITE SEM HABILIDADE ---
                 else if (isNightOne) {
-                    addAldeãoStep("Guardião", `Guardião (${nomeRealGuardião})`, "🦅", "bg-Aldeão", `
+                    addAldeãoStep("Guardião", `Guardião (${nomeRealGuardião})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Aldeão", `
                     <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
                         ❌ Você não tem habilidade na primeira noite. <br>
                     </div>
@@ -1905,7 +1908,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
 
                 // --- CENÁRIO C: AGUARDANDO ETAPAS ANTERIORES ---
                 else if ((isNightPlus && aguardandoLobisomem) || (isNightPlus && victimThisNight != "Guardião")) {
-                    addAldeãoStep("Guardião", `Guardião (${nomeRealGuardião})`, "🦅", "bg-Aldeão", `
+                    addAldeãoStep("Guardião", `Guardião (${nomeRealGuardião})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Aldeão", `
                     <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
                         🦅 Esperando usa hora chegar... <br>
                         Aguarde para receber sua informação.<br>
@@ -1933,7 +1936,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
                     }
 
                     // Renderização Única (Evita repetir o HTML duas vezes)
-                    addAldeãoStep("Guardião", `Guardião (${nomeRealGuardião})`, "🦅", "bg-Aldeão", `
+                    addAldeãoStep("Guardião", `Guardião (${nomeRealGuardião})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Aldeão", `
                         <div style="font-size:11px; color:#1E88E5; font-style:italic; margin-top: 5px; margin-bottom: 10px;">
                             Habilidade: Se você morrer à noite, você é acordado para escolher um jogador: você aprende o personagem dele.
                         </div>
@@ -1953,7 +1956,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
                         GuardiãoOptions += `<option value="${p.personagem}">${p.jogador}</option>`;
                     });
 
-                    addAldeãoStep("Guardião", `Guardião (${nomeRealGuardião})`, "🦅", "bg-Aldeão", `
+                    addAldeãoStep("Guardião", `Guardião (${nomeRealGuardião})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Aldeão", `
                     <div style="font-size:11px; color:#1E88E5; font-style:italic; margin-top: 5px; margin-bottom: 10px;">
                         Habilidade: Se você morrer à noite, você é acordado para escolher um jogador: você aprende o personagem dele.
                     </div>
@@ -1974,6 +1977,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
                 const dadosCoveiro = playersData.find(p => p.personagem === "Coveiro");
                 const nomeRealCoveiro = dadosCoveiro.jogador;
                 const CoveiroVivo = dadosCoveiro ? dadosCoveiro.vivo !== false : false;
+                const urlImagem = "icons/Icon_undertaker.png";
 
                 // --- CENÁRIO A: MORTO ---
                 if (!CoveiroVivo || (victimThisNight === "Coveiro" && (MongeProtectedRole !== victimThisNight || personagemEnvenenado === "Monge"))) {
@@ -1988,7 +1992,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
 
                 // --- CENÁRIO B: PRIMEIRA NOITE SEM HABILIDADE ---
                 else if (isNightOne) {
-                    addAldeãoStep("Coveiro", `Coveiro (${nomeRealCoveiro})`, "⚰️", "bg-Aldeão", `
+                    addAldeãoStep("Coveiro", `Coveiro (${nomeRealCoveiro})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Aldeão", `
                     <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
                         ❌ Você não tem habilidade na primeira noite. <br>
                     </div>
@@ -1997,7 +2001,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
 
                 // --- CENÁRIO C: AGUARDANDO ETAPAS ANTERIORES ---
                 else if (isNightPlus && aguardandoLobisomem) {
-                    addAldeãoStep("Coveiro", `Coveiro (${nomeRealCoveiro})`, "⚰️", "bg-Aldeão", `
+                    addAldeãoStep("Coveiro", `Coveiro (${nomeRealCoveiro})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Aldeão", `
                     <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
                         ⚰️ Preparando a cova... <br>
                         Aguarde para receber sua informação.
@@ -2021,7 +2025,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
                         ? opcoesFalsas[semente % opcoesFalsas.length]
                         : "Barão";
 
-                    addAldeãoStep("Coveiro", `Coveiro (${nomeRealCoveiro})`, "⚰️", tfColor, `
+                    addAldeãoStep("Coveiro", `Coveiro (${nomeRealCoveiro})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, tfColor, `
                     <div style="font-size:11px; color:#1E88E5; font-style:italic; margin-top: 5px; margin-bottom: 10px;">
                             Habilidade: Cada noite (exceto a primeira), você aprende qual personagem morreu hoje por execução.
                     </div>
@@ -2060,7 +2064,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
                     const jogadorEncontrado = playersData.find(p => p.jogador === ultimoExecutado);
                     const personagemultimoExecutado = jogadorEncontrado ? jogadorEncontrado.personagem : "Sem mortes";
 
-                    addAldeãoStep("Coveiro", `Coveiro (${nomeRealCoveiro})`, "⚰️", tfColor, `
+                    addAldeãoStep("Coveiro", `Coveiro (${nomeRealCoveiro})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, tfColor, `
                     <div style="font-size:11px; color:#1E88E5; font-style:italic; margin-top: 5px; margin-bottom: 10px;">
                             Habilidade: Cada noite (exceto a primeira), você aprende qual personagem morreu hoje por execução.
                     </div>
@@ -2117,6 +2121,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
             if (rolesInPlay.includes("Cartomante") && (isNightOne || isNightPlus) && (loginPersonagem == "Cartomante" || loginJogador == "NARRADOR")) {
                 const dadosCartomante = playersData.find(p => p.personagem === "Cartomante");
                 const nomeRealCartomante = dadosCartomante.jogador;
+                const urlImagem = "icons/Icon_fortuneteller.png";
 
                 // --- CENÁRIO A: MORTO ---
                 if (!CartomanteVivo || (victimThisNight === "Cartomante" && (MongeProtectedRole !== victimThisNight || personagemEnvenenado === "Monge"))) {
@@ -2131,7 +2136,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
 
                 // --- CENÁRIO B: AGUARDANDO ETAPAS ANTERIORES ---
                 else if (aguardandoLobisomem) {
-                    addAldeãoStep("Cartomante", `Cartomante (${nomeRealCartomante})`, "🔮", "bg-Aldeão", `
+                    addAldeãoStep("Cartomante", `Cartomante (${nomeRealCartomante})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Aldeão", `
                     <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
                         🔮 Preparando as cartas... <br>
                         Aguarde para receber sua informação.
@@ -2161,7 +2166,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
                     const textoResposta = respostaFinal ? "SIM" : "NÃO";
                     const legenda = respostaFinal ? "Há um Lobisomem entre eles" : "Sem sinal do Lobisomem";
 
-                    addAldeãoStep("Cartomante", `Cartomante (${nomeRealCartomante})`, "🔮", "bg-Aldeão", `
+                    addAldeãoStep("Cartomante", `Cartomante (${nomeRealCartomante})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Aldeão", `
                     <div style="font-size:11px; color:#1E88E5; font-style:italic; margin-bottom: 10px;">
                         Habilidade: Escolha 2 jogadores. Você descobre se pelo menos um deles é um Lobisomem (ou o Recluso).
                     </div>
@@ -2180,7 +2185,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
                         options += `<option value="${p.personagem}">${p.jogador}</option>`;
                     });
 
-                    addAldeãoStep("Cartomante", `Cartomante (${nomeRealCartomante})`, "🔮", tfColor, `
+                    addAldeãoStep("Cartomante", `Cartomante (${nomeRealCartomante})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, tfColor, `
                     <div class="instruction" style="font-size: 10px;">Habilidade: Cada noite você escolhe 2 jogadores e aprende se qualquer um deles é um Lobisomem. Há um bom jogador que se aparecerá como um Lobisomem para você.</div>
                     <div class="instruction">📢 "${nomeRealCartomante}, escolha dois jogadores para revelar se há um Lobisomem no meio:"</div>
                     <select id="ft-target-1" onchange="checkCartomante()">${options}</select>
@@ -2199,8 +2204,9 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
             if (rolesInPlay.includes("Cartomante") && CartomanteVivo && (isNightOne || isNightPlus) && loginJogador == "NARRADOR") {
                 const dadosCartomante = playersData.find(p => p.personagem === "Cartomante");
                 const nomeRealCartomante = dadosCartomante.jogador;
+                const urlImagem = "icons/Icon_fortuneteller.png";
 
-                addStep("Cartomante", `Cartomante (${nomeRealCartomante})`, "🔮", tfColor, `
+                addStep("Cartomante", `Cartomante (${nomeRealCartomante})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, tfColor, `
                 <div class="instruction">📢 "Cartomante (${nomeRealCartomante}) está escolhendo no dispositivo dele..."</div>
                     <div style="background: #e3f2fd; padding: 10px; border-radius: 5px; margin-top: 10px; border-left: 5px solid #2196F3;">
                         <strong>Alvo selecionado 1: </strong> 
@@ -2219,6 +2225,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
                 const dadosMatador = playersData.find(p => p.personagem === "Matador");
                 const nomeRealMatador = dadosMatador.jogador;
                 const MatadorVivo = dadosMatador ? dadosMatador.vivo !== false : false;
+                const urlImagem = "icons/Icon_slayer.png";
 
                 // --- CENÁRIO A: MORTO ---
                 if (!MatadorVivo) {
@@ -2233,7 +2240,7 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
 
                 // --- CENÁRIO B: NOITE SEM HABILIDADE ---
                 else {
-                    addAldeãoStep("Matador", `Matador (${nomeRealMatador})`, "🏹", "bg-Aldeão", `
+                    addAldeãoStep("Matador", `Matador (${nomeRealMatador})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Aldeão", `
                     <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
                         ❌ Você não tem habilidade durante à noite. <br>
                     </div>
@@ -3082,9 +3089,11 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
                         // Limpezas atômicas (usando null para não dar erro de ancestor)
                         updates2['partida/escolhasNoite'] = null;
                         updates2['partida/forca/quemJaIndicouHoje'] = null;
-                        updates2['partida/forca/quemJaIndicadosNaRodada'] = null;
                         updates2['partida/forca/quemJaIndicadoHoje'] = null;
                         updates2['partida/forca/emexecucao'] = null;
+                        updates2['partida/forca/quemVotou'] = null;
+                        updates2['partida/configuracao/acusadoAtual'] = null;
+                        updates2['partida/configuracao/acusadorAtual'] = null;
                         updates2['partida/configuracao/recordeVotosDia'] = 0;
 
                         updates2['partida/configuracao/faseAtual'] = 'nightPlus';
@@ -3184,7 +3193,6 @@ Durmam agora, cidadãos... pois a noite pertence ao Demônio.
                 // 4. LIMPEZAS GERAIS (Sempre ocorrem ao anoitecer)
                 updates['partida/escolhasNoite'] = null;
                 updates['partida/forca/quemJaIndicouHoje'] = null;
-                updates['partida/forca/quemJaIndicadosNaRodada'] = null;
                 updates['partida/forca/quemJaIndicadoHoje'] = null;
                 updates['partida/forca/emexecucao'] = null;
                 updates['partida/forca/quemVotou'] = null;
