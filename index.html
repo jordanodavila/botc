@@ -1088,6 +1088,8 @@
 
             const total = playersData.length;
 
+            const urlImagemGhost = "icons/Icon_ghost.png";
+
             // const urlImagemGhost = "icons/Icon_ghost.png";
 
             // 1. Verificamos se o Envenenador faz parte do jogo e está vivo
@@ -1138,11 +1140,11 @@
 
                 const dadosEnvenenador = playersData.find(p => p.personagem === "Envenenador");
                 const nomeRealEnvenenador = dadosEnvenenador ? dadosEnvenenador.jogador : "N/A";
-                const urlImagem = "icons/Icon_poisoner.png";
+                const urlImagem = "icons/Icon_poisoner.png";                
 
                 // CENÁRIO A: MORTO
                 if (!envenenadorVivo) {
-                    addStep("Envenenador", `Envenenador (${nomeRealEnvenenador})`, "👻", "bg-dead", `
+                    addStep("Envenenador", `Envenenador (${nomeRealEnvenenador})`, `<img src="${urlImagemGhost}" style="width:60px; vertical-align:middle;">`, "bg-dead", `
                     <div style="background:#546e7a; color:white; padding:15px; border-radius:8px; text-align:center; margin-top:10px;">
                         <div style="font-size: 24px;">👻</div>
                         <strong>VOCÊ ESTÁ MORTO</strong><br>
@@ -1306,10 +1308,11 @@
             });
             const dadosLobisomem = playersData.find(p => p.personagem === "Lobisomem");
             const nomeRealLobisomem = dadosLobisomem.jogador;
+            const urlImagem = "icons/Icon_imp.png";
 
             // --- NOITE 1 (Informação e Bluffs) ---
             if (isNightOne && (loginPersonagem == "Lobisomem" || loginJogador == "NARRADOR")) {
-                addStep("Lobisomem", `Lobisomem (${nomeRealLobisomem})`, "🐺", "bg-demon", `
+                addStep("Lobisomem", `Lobisomem (${nomeRealLobisomem})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-demon", `
                 <div style="font-size:11px; color:#C62828; font-style:italic; margin-top: 5px; margin-bottom: 10px;">
                     Habilidade: Cada noite (exceto a primeira), escolha um jogador para morrer. Se você se matar, um minion se torna o Lobisomem.
                 </div>
@@ -1327,7 +1330,7 @@
 
                 // 1. VERIFICAÇÃO: O Monge ainda está jogando?
                 if (aguardandoMonge) {
-                    addStep("Lobisomem", `Lobisomem (${nomeRealLobisomem})`, "🐺", "bg-demon", `
+                    addStep("Lobisomem", `Lobisomem (${nomeRealLobisomem})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-demon", `
                     <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
                         🛡️ O Monge está decidindo a proteção... <br>
                         Aguarde para realizar o ataque.
@@ -1339,7 +1342,7 @@
                     const dadosAlvo = playersData.find(p => p.personagem === victimThisNight);
                     const nomeAlvo = dadosAlvo ? dadosAlvo.jogador : victimThisNight;
 
-                    addStep("Lobisomem", `Lobisomem (${nomeRealLobisomem})`, "🐺", "bg-demon", `
+                    addStep("Lobisomem", `Lobisomem (${nomeRealLobisomem})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-demon", `
                     <div style="font-size:11px; color:#B71C1C; font-style:italic; margin-top: 5px; margin-bottom: 10px;">
                         Habilidade: Cada noite, escolha um jogador para morrer.
                     </div>
@@ -1356,7 +1359,7 @@
                         options += `<option value="${p.personagem}">${p.jogador}</option>`;
                     });
 
-                    addStep("Lobisomem", `Lobisomem (${nomeRealLobisomem})`, "🐺", "bg-demon", `
+                    addStep("Lobisomem", `Lobisomem (${nomeRealLobisomem})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-demon", `
                     <div style="font-size:11px; color:#B71C1C; font-style:italic; margin-top: 5px; margin-bottom: 10px;">
                         Habilidade: Cada noite (exceto a primeira), escolha um jogador para morrer. Se você se matar, um minion se torna o Lobisomem.
                     </div>
@@ -1374,7 +1377,7 @@
             if ((isNightOne || isNightPlus) && loginJogador == "NARRADOR") {
                 // --- VERSÃO DEMAIS NOITES (Ataque e Morte) ---
                 // Aqui usamos o options que você já gera com os jogadores vivos
-                addStep("Lobisomem", `Lobisomem (${nomeRealLobisomem})`, "🐺", "bg-demon", `
+                addStep("Lobisomem", `Lobisomem (${nomeRealLobisomem})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-demon", `
             <div style="font-size:11px; color:#B71C1C; font-style:italic; margin-top: 5px; margin-bottom: 10px;">
                 Habilidade: Cada noite (exceto a primeira), escolha um jogador para morrer. Se você se matar, um minion se torna o Lobisomem.
             </div>
@@ -2135,7 +2138,7 @@
                 }
 
                 // --- CENÁRIO B: AGUARDANDO ETAPAS ANTERIORES ---
-                else if (aguardandoLobisomem) {
+                else if ((isNightOne && aguardandoVeneno) || (isNightPlus && aguardandoLobisomem)) {
                     addAldeãoStep("Cartomante", `Cartomante (${nomeRealCartomante})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Aldeão", `
                     <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
                         🔮 Preparando as cartas... <br>
