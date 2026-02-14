@@ -489,7 +489,7 @@
             <h1>Digite seu nome</h1>
             <p>Use o mesmo nome que o narrador cadastrou.</p>
             <input type="text" id="player-name-input" placeholder="Seu nome...">
-            <input type="password" id="player-password-input" placeholder="Sua senha de 4 dígitos...">
+            <input type="password" id="player-password-input" placeholder="Sua senha...">
             <br>
             <button onclick="conectar()">Entrar no Jogo</button>
         </div>
@@ -892,23 +892,15 @@
             "Virgem", "Matador", "Soldado", "Prefeito"
         ];
 
-        // -- FUNÇÃO DO PAPEL DO JOGADOR ---
+        // --- FUNÇÃO DO PAPEL DO JOGADOR ---
         function conectar() {
             const nome = document.getElementById('player-name-input').value.trim().toUpperCase();
-            // Captura a senha digitada (certifique-se de ter um input com este ID no HTML)
             const senhaDigitada = document.getElementById('player-password-input').value.trim();
 
             if (!nome) return alert("Digite seu nome!");
             if (nome !== "NARRADOR" && !senhaDigitada) return alert("Digite sua senha!");
 
-            sessionStorage.setItem('botc_nome', nome);
-            sessionStorage.setItem('botc_senha', senhaDigitada);
-
-            //A diferença fundamental:
-            // localStorage: Persiste mesmo se você fechar a aba ou o navegador. É compartilhado entre abas do mesmo site.
-            // sessionStorage: Os dados ficam isolados por aba (tab). Se você abrir 10 abas, cada uma pode ter um login diferente e, ao dar F5, o dado permanece naquela aba específica. Se fechar a aba, o dado some.
-
-            // Se for o NARRADOR, você pode pular a verificação de senha ou usar uma fixa
+            // Caso especial: NARRADOR
             if (nome === "NARRADOR") {
                 loginJogador = nome;
                 document.getElementById('login-area').classList.add('hidden');
@@ -918,36 +910,54 @@
                 return;
             }
 
-            // Para jogadores comuns, verificamos primeiro se a senha bate
+            // Busca o jogador no Firebase
             db.ref('partida/jogadores/' + nome).once('value').then((snapshot) => {
                 const data = snapshot.val();
 
                 if (!data) {
-                    alert("Jogador não encontrado na partida!");
+                    alert("Jogador não cadastrado pelo narrador!");
                     return;
                 }
 
-                // VALIDAÇÃO DA SENHA
-                if (data.senha && data.senha === senhaDigitada) {
-                    // Senha correta! Prossiga com o login
-                    loginJogador = nome;
-                    document.getElementById('login-area').classList.add('hidden');
-                    document.getElementById('game-area').classList.remove('hidden');
+                // --- LÓGICA DE SENHA INTELIGENTE ---
 
-                    // Ativa o listener em tempo real para o personagem
-                    ativarListenerJogador(nome);
-
-                    // Verifica o status do lobby
-                    db.ref('partida/configuracao/statusLobby').once('value').then((snap) => {
-                        if (snap.val() === "aberto") {
-                            importarDoFirebase();
-                        }
-                    });
-                } else {
-                    alert("Senha incorreta!");
+                // Caso 1: O jogador ainda NÃO TEM senha no banco
+                if (!data.senha || data.senha === "") {
+                    db.ref('partida/jogadores/' + nome + '/senha').set(senhaDigitada)
+                        .then(() => {
+                            console.log("Senha gravada com sucesso no primeiro acesso!");
+                            prosseguirLogin(nome, senhaDigitada);
+                        });
+                }
+                // Caso 2: Já existe senha, então precisamos validar
+                else if (data.senha === senhaDigitada) {
+                    prosseguirLogin(nome, senhaDigitada);
+                }
+                // Caso 3: Senha errada
+                else {
+                    alert("Senha incorreta para este jogador!");
                 }
             });
-        };
+        }
+
+        // Função auxiliar para evitar repetição de código
+        function prosseguirLogin(nome, senha) {
+            sessionStorage.setItem('botc_nome', nome);
+            sessionStorage.setItem('botc_senha', senha);
+
+            loginJogador = nome;
+            document.getElementById('login-area').classList.add('hidden');
+            document.getElementById('game-area').classList.remove('hidden');
+
+            // Ativa o listener em tempo real para o personagem
+            ativarListenerJogador(nome);
+
+            db.ref('partida/configuracao/statusLobby').once('value').then((snap) => {
+                if (snap.val() === "aberto") {
+                    importarDoFirebase();
+                }
+            });
+        }
 
         // Função auxiliar para manter o código limpo
         function ativarListenerJogador(nome) {
@@ -1565,28 +1575,45 @@
                 const dadosLavadeira = playersData.find(p => p.personagem === "Lavadeira");
                 const nomeRealLavadeira = dadosLavadeira.jogador;
                 const urlImagem = "icons/Icon_washerwoman.png";
-                //NOVO: DROPDOWN ALDEÕES PARA LAVADEIRA
-                let LavadeiraOptions = '';
+                // //NOVO: DROPDOWN ALDEÕES PARA LAVADEIRA
+                // let LavadeiraOptions = '';
+                // playersData.filter(p => p.tipo === "Aldeão").forEach(p => {
+                //     LavadeiraOptions += `<option value="${p.personagem}">${p.personagem} (${p.jogador})</option>`;
+                // });
+                // // SEGUNDO DROWDOWN (pode ser qualquer jogador, pois é um falso)
+                // let AllPlayersOptions = '<option value="">Selecione o segundo jogador...</option>';
+                // playersData.forEach(p => {
+                //     AllPlayersOptions += `<option value="${p.jogador}">${p.jogador} (${p.personagem})</option>`;
+                // });
+
+                // 1. DROPDOWN ALDEÕES (Filtra para não mostrar a própria Lavadeira se ela for o alvo,
+                // embora tecnicamente ela pudesse ser, mas removemos por UX igual à Cartomante)
+                let LavadeiraOptions = '<option value="">Selecione o Aldeão...</option>';
                 playersData.filter(p => p.tipo === "Aldeão").forEach(p => {
-                    LavadeiraOptions += `<option value="${p.personagem}">${p.personagem} (${p.jogador})</option>`;
+                    if (p.jogador !== nomeRealLavadeira) { // FILTRO AQUI
+                        LavadeiraOptions += `<option value="${p.personagem}">${p.personagem} (${p.jogador})</option>`;
+                    }
                 });
-                // SEGUNDO DROWDOWN (pode ser qualquer jogador, pois é um falso)
+
+                // 2. SEGUNDO DROPDOWN (Qualquer jogador exceto a própria Lavadeira)
                 let AllPlayersOptions = '<option value="">Selecione o segundo jogador...</option>';
                 playersData.forEach(p => {
-                    AllPlayersOptions += `<option value="${p.jogador}">${p.jogador} (${p.personagem})</option>`;
+                    if (p.jogador !== nomeRealLavadeira) { // FILTRO AQUI
+                        AllPlayersOptions += `<option value="${p.jogador}">${p.jogador} (${p.personagem})</option>`;
+                    }
                 });
 
                 addAldeãoStep("Lavadeira", `Lavadeira (${nomeRealLavadeira})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, tfColor, `
                 <div class="instruction" style="font-size: 10px;">Habilidade: Você começa sabendo que 1 de 2 jogadores é Aldeão e qual o personagem.</div>
                 <div class="instruction italic">👉 Lavadeira, ${selectedLavadeiraRole} é o ${selectedLavadeiraRealPlayer} ou o ${selectedLavadeiraFakePlayer}.
                 <div class="instruction italic">👉 Narrador, escolha um personagem Aldeão específico que está em jogo (ex: quero mostrar a Lavadeira):</div>
-                <select style="border-color:${azul};" onchange="updateLavadeiraInfo(this.value)">
-                    <option value="">Selecione o Personagem...</option>
+
+                <select id="lavadeira-sel-role" style="border-color:${azul};" onchange="updateLavadeiraStep()">
                     ${LavadeiraOptions}
                 </select>
 
                 <div class="instruction italic" style="margin-top:10px;">👉 2. Narrador, escolha o segundo jogador que irá para a Lavadeira (o "Fake"):</div>
-                <select style="border-color:${azul};" onchange="updateLavadeiraFake(this.value)">
+                <select id="lavadeira-sel-fake" style="border-color:${azul};" onchange="updateLavadeiraStep()">
                     ${AllPlayersOptions}
                 </select>
 
@@ -2686,25 +2713,58 @@
             }
         }
 
-        function updateLavadeiraInfo(selectedRole) {
-            if (!selectedRole) return;
+        // function updateLavadeiraInfo(selectedRole) {
+        //     if (!selectedRole) return;
 
-            // 1. Apenas calculamos os dados necessários
-            const targetPlayer = playersData.find(p => p.personagem === selectedRole);
-            const realPlayerName = targetPlayer ? targetPlayer.jogador : "Não encontrado";
+        //     // 1. Apenas calculamos os dados necessários
+        //     const targetPlayer = playersData.find(p => p.personagem === selectedRole);
+        //     const realPlayerName = targetPlayer ? targetPlayer.jogador : "Não encontrado";
 
-            // 2. Enviamos TUDO de uma vez (Atômico)
+        //     // 2. Enviamos TUDO de uma vez (Atômico)
+        //     firebase.database().ref('partida/escolhasNoite').update({
+        //         selectedLavadeiraRole: selectedRole,
+        //         selectedLavadeiraRealPlayer: realPlayerName
+        //     }).then(() => {
+        //         console.log("[AUDITORIA] Dados da Lavadeira sincronizados.");
+        //     });
+        // }
+
+        // function updateLavadeiraFake(playerName) {
+        //     if (!playerName) return;
+        //     firebase.database().ref('partida/escolhasNoite/selectedLavadeiraFakePlayer').set(playerName);
+        // }
+
+        function updateLavadeiraStep() {
+            // 1. Captura os valores atuais dos selects
+            // Adicione IDs nos seus selects no HTML: id="lavadeira-sel-role" e id="lavadeira-sel-fake"
+            const selectedRole = document.getElementById('lavadeira-sel-role').value;
+            const selectedFakePlayer = document.getElementById('lavadeira-sel-fake').value;
+
+            if (!selectedRole || !selectedFakePlayer) return;
+
+            // 2. Encontra o nome real do jogador que possui o personagem selecionado
+            const targetData = playersData.find(p => p.personagem === selectedRole);
+            const realPlayerName = targetData ? targetData.jogador : "";
+
+            // 3. Verificação de duplicidade (Não podem ser a mesma pessoa)
+            if (realPlayerName === selectedFakePlayer) {
+                alert("A Lavadeira deve ver dois jogadores diferentes! Você selecionou " + realPlayerName + " nos dois campos.");
+                document.getElementById('lavadeira-sel-fake').value = ""; // Reseta o segundo dropdown
+                return;
+            }
+
+            // 4. Atualização Visual no Token (Opcional, para feedback imediato ao narrador)
+            const label = document.getElementById('Lavadeira-token-label');
+            if (label) label.innerText = selectedRole;
+
+            // 5. Envio Atômico para o Firebase
             firebase.database().ref('partida/escolhasNoite').update({
                 selectedLavadeiraRole: selectedRole,
-                selectedLavadeiraRealPlayer: realPlayerName
+                selectedLavadeiraRealPlayer: realPlayerName,
+                selectedLavadeiraFakePlayer: selectedFakePlayer
             }).then(() => {
-                console.log("[AUDITORIA] Dados da Lavadeira sincronizados.");
+                console.log("[AUDITORIA] Lavadeira sincronizada com sucesso.");
             });
-        }
-
-        function updateLavadeiraFake(playerName) {
-            if (!playerName) return;
-            firebase.database().ref('partida/escolhasNoite/selectedLavadeiraFakePlayer').set(playerName);
         }
 
         // --- FUNÇÃO BIBLIOTECÁRIO ---
@@ -2927,53 +2987,70 @@
             setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
         }
 
+        // FUNÇÃO NOVA
         async function amanhecer() {
             if (!confirm("Deseja processar o Amanhecer? Isso revelará o morto da noite.")) return;
 
-            // 1. CÁLCULO DA RESOLUÇÃO (Single Point of Failure)
-            // Decidimos aqui, de uma vez por todas, se a morte foi anulada.
-            const protecaoMonge = (MongeProtectedRole === victimThisNight && personagemEnvenenado !== "Monge");
-            const protecaoSoldado = (victimThisNight === "Soldado" && personagemEnvenenado !== "Soldado");
-
-            let vitimaFinal = victimThisNight;
-            let nomeFinal = victimNameThisNight;
-
-            if (protecaoMonge || protecaoSoldado) {
-                console.log(protecaoMonge ? "🛡️ Auditoria: Proteção do Monge validada." : "🎖️ Auditoria: Defesa do Soldado validada.");
-                vitimaFinal = "Ninguém";
-                nomeFinal = "Ninguém";
-            }
-
-            // 2. ATUALIZAÇÃO ATÔMICA
-            // Gravamos o resultado final e a nova fase em um único envio se possível, 
-            // ou garantimos a ordem correta.
             try {
-                await db.ref('partida/escolhasNoite').update({
-                    victimThisNight: vitimaFinal,
-                    victimNameThisNight: nomeFinal
-                });
+                // 1. Pega os dados atuais para o cálculo
+                const snapshot = await db.ref('partida').once('value');
+                const partida = snapshot.val();
+                const jogadores = partida.jogadores || {};
 
-                // 3. MUDANÇA DE ESTADO
-                await db.ref('partida/configuracao/faseAtual').set("day");
+                const protecaoMonge = (MongeProtectedRole === victimThisNight && personagemEnvenenado !== "Monge");
+                const protecaoSoldado = (victimThisNight === "Soldado" && personagemEnvenenado !== "Soldado");
 
-                // 4. PROCESSA A MORTE (Apenas se houver vítima real)
+                let vitimaFinal = victimThisNight;
+                let nomeFinal = victimNameThisNight;
+
+                if (protecaoMonge || protecaoSoldado) {
+                    console.log(protecaoMonge ? "🛡️ Auditoria: Proteção do Monge validada." : "🎖️ Auditoria: Defesa do Soldado validada.");
+                    vitimaFinal = "Ninguém";
+                    nomeFinal = "Ninguém";
+                }
+
+                // 2. Preparar Updates Atômicos
+                let updates = {};
+                updates['partida/escolhasNoite/victimThisNight'] = vitimaFinal;
+                updates['partida/escolhasNoite/victimNameThisNight'] = nomeFinal;
+                updates['partida/configuracao/faseAtual'] = "day";
+                updates['partida/configuracao/ultimoExecutado'] = null;
+
+                // 3. Processar Morte Físicamente
                 if (vitimaFinal !== "Ninguém") {
-                    const alvo = playersData.find(p => p.personagem === vitimaFinal);
-                    if (alvo) {
-                        await db.ref('partida/jogadores/' + alvo.jogador).update({ vivo: false });
+                    // Buscamos o jogador pelo personagem no banco (garante precisão)
+                    const entries = Object.entries(jogadores);
+                    const alvoEntry = entries.find(([nome, dados]) => dados.personagem === vitimaFinal);
+
+                    if (alvoEntry) {
+                        const nomeDoJogador = alvoEntry[0];
+                        updates[`partida/jogadores/${nomeDoJogador}/vivo`] = false;
+                        // Atualizamos o dado local para a conta de vitória abaixo
+                        jogadores[nomeDoJogador].vivo = false;
                     }
                 }
 
-                // 5. GATILHO VISUAL
+                // 4. Checagem de Vitória (Pós-morte)
+                const vivosFinais = Object.values(jogadores).filter(p => p.vivo !== false);
+                // Procure por qualquer personagem que seja do tipo "Demon" (mais genérico)
+                const demonioVivo = vivosFinais.some(p => p.tipo === "Demon" || p.personagem === "Lobisomem");
+
+                if (vivosFinais.length <= 2 && demonioVivo) {
+                    updates['partida/configuracao/vitoria'] = "Evil";
+                }
+
+                // 5. ENVIO ÚNICO AO FIREBASE
+                await db.ref().update(updates);
+
+                // Gatilho visual separado (não impede o jogo se falhar)
                 db.ref('partida/animacoes/triggerAmanhecer').set(true);
                 setTimeout(() => db.ref('partida/animacoes/triggerAmanhecer').remove(), 10000);
 
-                // 6. LIMPAR PARA O COVEIRO
-                db.ref('partida/configuracao/ultimoExecutado').remove()
+                console.log("✅ Amanhecer processado com sucesso.");
 
             } catch (error) {
                 console.error("Falha na auditoria do amanhecer:", error);
-                alert("Erro ao processar amanhecer. Tente novamente.");
+                alert("Erro técnico ao processar amanhecer.");
             }
         }
 
@@ -3212,6 +3289,13 @@
                     const nomeDoMorto = dadosExecucao.nome;
                     const dadosDoJogador = jogadores[nomeDoMorto];
                     const personagemDoMorto = dadosDoJogador ? dadosDoJogador.personagem : "";
+
+                    // --- FINAL DE JOGO (POUCOS JOGADORES) ---
+                    const vivosAposExecucao = totalVivos - 1;
+                    if (vivosAposExecucao == 2 && personagemDoMorto !== "Lobisomem") {
+                        updates['partida/configuracao/vitoria'] = "Evil";
+                        vitoriaDeclarada = true;
+                    }
 
                     // --- CASO ESPECIAL: SANTO ---
                     if (personagemDoMorto === "Santo" && personagemEnvenenado !== "Santo") {
