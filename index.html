@@ -660,8 +660,7 @@
                                 <strong style="color:#1b5e20;">🟢 Prefeito:</strong>
                                 <p style="margin:5px 0;font-size:0.85em;color:#2e7d32;">
                                     Se apenas três jogadores viverem e nenhuma execução ocorrer, sua equipe vence.
-                                    Se você morrer à noite, outro jogador pode morrer no seu lugar (à escolha do
-                                    storyteller).
+                                    Se você morrer à noite, outro jogador do bem pode morrer no seu lugar.
                                 </p>
                             </div>
 
@@ -867,6 +866,7 @@
         let ultimoExecutado = "";
         let virgemJaNomeada = false;
         let matadorJaAtirou = false;
+        let desvioPrefeitoUtilizado = false;
 
         let jogadoresFantasmasVotoGasto = {};
 
@@ -1821,7 +1821,16 @@
                 `);
                 }
 
-                // --- CENÁRIO B: AGUARDANDO ETAPAS ANTERIORES ---
+                // --- CENÁRIO B: DEMAIS NOITES SEM HABILIDADE ---
+                else if (isNightPlus) {
+                    addAldeãoStep("Investigador", `Investigador (${nomeRealInvestigador})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Aldeão", `
+                    <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
+                        ❌ Você não tem habilidade nas demais noites. <br>
+                    </div>
+                `);
+                }
+
+                // --- CENÁRIO C: AGUARDANDO ETAPAS ANTERIORES ---
                 else if (isNightOne && aguardandoVeneno || !selectedInvestigadorRole || !selectedInvestigadorRealPlayer || !selectedInvestigadorFakePlayer) {
                     addAldeãoStep("Investigador", `Investigador (${nomeRealInvestigador})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Aldeão", `
                     <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
@@ -1831,7 +1840,7 @@
                 `);
                 }
 
-                // --- CENÁRIO C: ENVENENADO ---
+                // --- CENÁRIO D: ENVENENADO ---
                 else if (isNightOne && personagemEnvenenado === "Investigador") {
                     // Filtra personagens do tipo Lacaio/Minion que não são o real para mentir
                     const opcoesFalsas = playersData
@@ -1864,7 +1873,7 @@
                 `);
                 }
 
-                // --- CENÁRIO D: HABILIDADE NORMAL ---
+                // --- CENÁRIO E: HABILIDADE NORMAL ---
                 else if (isNightOne) {
                     const sorteio = Math.floor(Math.random() * 2);
                     let textoInvestigador = (sorteio === 0)
@@ -1884,15 +1893,6 @@
                     </div>
                     <div id="Investigador-info" style="margin-top: 10px;">
                         <div class="instruction italic" style="text-align:center;">👉 Um destes jogadores é ${selectedInvestigadorRole}.</div>
-                    </div>
-                `);
-                }
-
-                // --- CENÁRIO E: DEMAIS NOITES SEM HABILIDADE ---
-                else if (isNightPlus) {
-                    addAldeãoStep("Investigador", `Investigador (${nomeRealInvestigador})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Aldeão", `
-                    <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
-                        ❌ Você não tem habilidade nas demais noites. <br>
                     </div>
                 `);
                 }
@@ -1989,7 +1989,7 @@
                 else if ((isNightPlus && aguardandoLobisomem) || (isNightPlus && victimThisNight != "Guardião")) {
                     addAldeãoStep("Guardião", `Guardião (${nomeRealGuardião})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Aldeão", `
                     <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
-                        🦅 Esperando usa hora chegar... <br>
+                        🦅 Esperando sua hora chegar... <br>
                         Aguarde para receber sua informação.<br>
                     </div>
                 `);
@@ -2331,6 +2331,60 @@
                     addAldeãoStep("Matador", `Matador (${nomeRealMatador})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Aldeão", `
                     <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
                         ❌ Você não tem habilidade durante à noite. <br>
+                    </div>
+                `);
+                }
+            }
+
+            // --- PREFEITO ---
+            if (rolesInPlay.includes("Prefeito") && (isNightOne || isNightPlus) && (loginPersonagem == "Prefeito" || loginJogador == "NARRADOR")) {
+                const dadosPrefeito = playersData.find(p => p.personagem === "Prefeito");
+                const nomeRealPrefeito = dadosPrefeito.jogador;
+                const PrefeitoVivo = dadosPrefeito ? dadosPrefeito.vivo !== false : false;
+                const urlImagem = "icons/Icon_mayor.png";
+
+                // --- CENÁRIO A: MORTO ---
+                if (!PrefeitoVivo) {
+                    addStep("Prefeito", `Prefeito (${nomeRealPrefeito})`, "👻", "bg-dead", `
+                    <div style="background:#546e7a; color:white; padding:15px; border-radius:8px; text-align:center; margin-top:10px;">
+                        <div style="font-size: 24px;">👻</div>
+                        <strong>VOCÊ ESTÁ MORTO</strong><br>
+                        <small>Fantasmas não podem usar habilidades noturnas, mas você ainda pode votar uma última vez no dia!</small>
+                    </div>
+                `);
+                }
+
+                // --- CENÁRIO B: MORTE JÁ DESVIADA
+                else if (desvioPrefeitoUtilizado === true) {
+                    const dadosAlvo = playersData.find(p => p.personagem === victimThisNight);
+                    const nomeAlvo = dadosAlvo ? dadosAlvo.jogador : victimThisNight;
+                    addAldeãoStep("Prefeito", `Prefeito (${nomeRealPrefeito})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Aldeão", `
+                    <div class="instruction" style="font-size: 10px;">Habilidade: Se apenas três jogadores viverem e nenhuma execução ocorrer, sua equipe vence.\n Se você morrer à noite, outro jogador pode morrer no seu lugar.</div>
+                    <div class="instruction">📢 "Prefeito, escolha quem morre no seu lugar."</div>
+                    <div style="background: linear-gradient(135deg, #4A148C 0%, #311B92 100%); color: #E1BEE7; padding: 10px; border-radius: 5px; margin-top: 10px; font-weight: bold; text-align: center; border: 1px solid #7B1FA2; box-shadow: 0 4px 8px rgba(0,0,0,0.3);">
+                        🐀 JOGADOR SERÁ SACRIFICADO NO SEU LUGAR.
+                    </div>
+                `);
+                }
+
+                // --- CENÁRIO C: ATACADO PELA NOITE ---
+                else if (isNightPlus && victimThisNight == "Prefeito" && (MongeProtectedRole !== victimThisNight || personagemEnvenenado === "Monge")) {
+                    let options = '<option value="">Selecione o alvo...</option>';
+                    vivos.forEach(p => {
+                        options += `<option value="${p.personagem}">${p.jogador}</option>`;
+                    });
+
+                    addAldeãoStep("Prefeito", `Prefeito (${nomeRealPrefeito})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Aldeão", `
+                    <div class="instruction" style="font-size: 10px;">Habilidade: Se apenas três jogadores viverem e nenhuma execução ocorrer, sua equipe vence.\n Se você morrer à noite, outro jogador pode morrer no seu lugar.</div>
+                    <div class="instruction">📢 "Prefeito, escolha quem morre no seu lugar."</div>
+                    <select id="lobisomem-kill-select" onchange="desvioPrefeito(this)">${options}</select>
+                `);
+                }
+                // --- CENÁRIO D: SEM HABILIDADE ---
+                else {
+                    addAldeãoStep("Prefeito", `Prefeito (${nomeRealPrefeito})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Aldeão", `
+                    <div style="text-align:center; padding:20px; color: #666; font-style: italic;">
+                        Se você morrer à noite, pode escolher alguém para morrer no lugar. <br>
                     </div>
                 `);
                 }
@@ -2879,8 +2933,33 @@
             }
         }
 
+        // --- FUNÇÃO PREFEITO ---
+        function desvioPrefeito(selectElement) {
+            const targetPlayer = selectElement.value;
+            const jogadorEncontrado = playersData.find(p => p.personagem === targetPlayer);
+            const tipoAlvo = jogadorEncontrado ? jogadorEncontrado.tipo : "";
+            const nomeReal = jogadorEncontrado ? jogadorEncontrado.jogador : "Ninguém";
 
-        // Matador (slayer)
+            if (!targetPlayer) return; // Segurança contra valores vazios
+
+            if (personagemEnvenenado === "Prefeito" || tipoAlvo === "Evil" || tipoAlvo === "Minion") {
+                console.log("[AUDITORIA] Habilidade do Prefeito ignorada devido a envenenamento.");
+                firebase.database().ref('partida/escolhasNoite/desvioPrefeitoUtilizado').set(true)
+                return;
+            }
+
+            // Fazemos TUDO em um único update para garantir consistência total
+            firebase.database().ref('partida/escolhasNoite').update({
+                victimThisNight: targetPlayer,
+                victimNameThisNight: nomeReal,
+                desvioPrefeitoUtilizado: true
+            }).then(() => {
+                console.log("[AUDITORIA] Morte desviada pelo Prefeito.");
+            });
+        }
+
+
+        // --- FUNÇÃO MATADOR (SLAYER) ---
         function dispararTiroMatador(selectElement) {
             const nomeDoAlvo = selectElement.value; // Pega o valor da string selecionada
             if (!nomeDoAlvo) return;
@@ -3339,6 +3418,14 @@
                     }
                     // 3B - Sem execução
                 } else {
+                    const prefeitoAtivo = listaVivos.some(p => p.personagem === "Prefeito" && p.vivo !== false && personagemEnvenenado !== "Prefeito");
+
+                    if (totalVivos === 3 && prefeitoAtivo) {
+                        updates['partida/configuracao/vitoria'] = "Good";
+                        vitoriaDeclarada = true;
+                        alert("👑 O PREFEITO ESTÁ VIVO! Como ninguém foi executado com 3 jogadores, o BEM venceu!");
+                    }
+
                     updates['partida/configuracao/anuncioExecucao'] = "Ninguém";
                     updates['partida/configuracao/ultimoExecutado'] = "Ninguém";
                 }
@@ -3548,11 +3635,11 @@
             if (vencedor === "Good") {
                 endScreen.className = "bg-good"; // Classe CSS definida anteriormente
                 msg.innerText = "O BEM VENCEU!";
-                icon.innerText = "🛡️☀️";
+                icon.innerHTML = `<img src="icons/Icon_goodwin.png" style="width:200px; height:auto;">`;
             } else if (vencedor === "Evil") {
                 endScreen.className = "bg-evil"; // Classe CSS definida anteriormente
                 msg.innerText = "O MAL VENCEU!";
-                icon.innerText = "😈🔥";
+                icon.innerHTML = `<img src="icons/Icon_evilwin.png" style="width:200px; height:auto;">`;
             }
         }
 
@@ -3781,6 +3868,14 @@
             }
         });
 
+        db.ref('partida/escolhasNoite/desvioPrefeitoUtilizado').on('value', (snapshot) => {
+            // Se o valor não existir (null), vira false. Se existir, assume o valor do banco.
+            desvioPrefeitoUtilizado = snapshot.val() === true;
+
+            if (typeof renderScript === "function") {
+                renderScript();
+            }
+        });
 
         // Sincronizando votos
         db.ref('partida/forca/quemVotou').on('value', (snapshot) => {
