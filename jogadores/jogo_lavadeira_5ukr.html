@@ -2030,7 +2030,6 @@
         }
 
         // Inicia a verificação imediatamente
-        tentarAutoLogin();
 
         function pegarDadosDaURL() {
             const params = new URLSearchParams(window.location.search);
@@ -2046,7 +2045,11 @@
                 console.log("Auto-login via URL detectado");
             }
         }
-        pegarDadosDaURL();
+
+        document.addEventListener("DOMContentLoaded", () => {
+            pegarDadosDaURL();
+            tentarAutoLogin();
+        });
 
         //#endregion
 
