@@ -892,6 +892,8 @@
             "Virgem", "Matador", "Soldado", "Prefeito"
         ];
 
+        tentarAutoLogin();
+
         // --- FUNÇÃO DO PAPEL DO JOGADOR ---
         function conectar() {
             const nome = document.getElementById('player-name-input').value.trim().toUpperCase();
@@ -1194,15 +1196,15 @@
             //#endregion
 
 
-            // Region [RENDER SCRIPT: ENVENENADOR] removida para segurança.
+            // Region [RENDER SCRIPT: ENVENENADOR] removida para segurança do jogo.
 
-            // Region [RENDER SCRIPT: MONGE] removida para segurança.
+            // Region [RENDER SCRIPT: MONGE] removida para segurança do jogo.
 
-            // Region [RENDER SCRIPT: LOBISOMEM] removida para segurança.
-            
-            // Region [RENDER SCRIPT: PREFEITO] removida para segurança.
+            // Region [RENDER SCRIPT: LOBISOMEM] removida para segurança do jogo.
 
-            // Region [RENDER SCRIPT: ESPIÃO] removida para segurança.
+            // Region [RENDER SCRIPT: PREFEITO] removida para segurança do jogo.
+
+            // Region [RENDER SCRIPT: ESPIÃO] removida para segurança do jogo.
 
             // --- Aldeão / Outsiders ---
             const tfColor = "bg-Aldeão";
@@ -1373,25 +1375,25 @@
             }
             //#endregion
 
-            // Region [RENDER SCRIPT: BIBLIOTECÁRIO] removida para segurança.
+            // Region [RENDER SCRIPT: BIBLIOTECÁRIO] removida para segurança do jogo.
 
-            // Region [RENDER SCRIPT: INVESTIGADOR] removida para segurança.
+            // Region [RENDER SCRIPT: INVESTIGADOR] removida para segurança do jogo.
 
-            // Region [RENDER SCRIPT: GUARDIÃO] removida para segurança.
+            // Region [RENDER SCRIPT: GUARDIÃO] removida para segurança do jogo.
 
-            // Region [RENDER SCRIPT: COVEIRO] removida para segurança.
+            // Region [RENDER SCRIPT: COVEIRO] removida para segurança do jogo.
 
-            // Region [RENDER SCRIPT: CHEFE] removida para segurança.
+            // Region [RENDER SCRIPT: CHEFE] removida para segurança do jogo.
 
-            // Region [RENDER SCRIPT: EMPATA] removida para segurança.
+            // Region [RENDER SCRIPT: EMPATA] removida para segurança do jogo.
 
-            // Region [RENDER SCRIPT: CARTOMANTE] removida para segurança.
+            // Region [RENDER SCRIPT: CARTOMANTE] removida para segurança do jogo.
 
-            // Region [RENDER SCRIPT: MATADOR] removida para segurança.
+            // Region [RENDER SCRIPT: MATADOR] removida para segurança do jogo.
 
-            // Region [RENDER SCRIPT: MORDOMO] removida para segurança.
+            // Region [RENDER SCRIPT: MORDOMO] removida para segurança do jogo.
 
-            // Region [RENDER SCRIPT: NARRADOR] removida para segurança.
+            // Region [RENDER SCRIPT: NARRADOR] removida para segurança do jogo.
 
             //#region RENDER SCRIPT: TODOS
             if (isDay) {
@@ -1647,7 +1649,7 @@
         }
         //#endregion
 
-        // Region [FUNCTIONS: ENVENENADOR] removida para segurança.
+        // Region [FUNCTIONS: ENVENENADOR] removida para segurança do jogo.
 
         //#region FUNCTIONS: LAVADEIRA
         function updateLavadeiraStep() {
@@ -1684,21 +1686,21 @@
         }
         //#endregion
 
-        // Region [FUNCTIONS: BIBLIOTECÁRIO] removida para segurança.
+        // Region [FUNCTIONS: BIBLIOTECÁRIO] removida para segurança do jogo.
 
-        // Region [FUNCTIONS: INVESTIGADOR] removida para segurança.
+        // Region [FUNCTIONS: INVESTIGADOR] removida para segurança do jogo.
 
-        // Region [FUNCTIONS: MONGE] removida para segurança.
+        // Region [FUNCTIONS: MONGE] removida para segurança do jogo.
 
-        // Region [FUNCTIONS: LOBISOMEM] removida para segurança.
+        // Region [FUNCTIONS: LOBISOMEM] removida para segurança do jogo.
 
-        // Region [FUNCTIONS: PREFEITO] removida para segurança.
+        // Region [FUNCTIONS: PREFEITO] removida para segurança do jogo.
 
-        // Region [FUNCTIONS: MATADOR] removida para segurança.
+        // Region [FUNCTIONS: MATADOR] removida para segurança do jogo.
 
-        // Region [FUNCTIONS: GUARDIÃO] removida para segurança.
+        // Region [FUNCTIONS: GUARDIÃO] removida para segurança do jogo.
 
-        // Region [FUNCTIONS: CARTOMANTE] removida para segurança.
+        // Region [FUNCTIONS: CARTOMANTE] removida para segurança do jogo.
 
         function showToast(msg) {
             const toast = document.getElementById("toast");
@@ -1707,7 +1709,7 @@
             setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
         }
 
-        // Region [FUNCTIONS: NARRADOR] removida para segurança.
+        // Region [FUNCTIONS: NARRADOR] removida para segurança do jogo.
 
 
         function mostrarMorteNoite(victimNameThisNight) {
@@ -1855,7 +1857,7 @@
         }
 
 
-        // Region [FUNCTIONS: NARRADOR2] removida para segurança.
+        // Region [FUNCTIONS: NARRADOR2] removida para segurança do jogo.
 
         function updateGamePhase(novaFase) {
             // ATUALIZA FIREBASE
@@ -1943,7 +1945,7 @@
         }
         //#endregion
 
-        // Region [FUNCTIONS: NARRADOR3] removida para segurança.
+        // Region [FUNCTIONS: NARRADOR3] removida para segurança do jogo.
 
         // ESTÉTICA
         function atualizarHeaderFase(fase) {
@@ -1993,20 +1995,60 @@
             }
         }
 
-        window.onload = function () {
+        //#region SISTEMA: AUTO-LOGIN (PORTÃO) TODOS
+        function tentarAutoLogin() {
             const nomeSalvo = sessionStorage.getItem('botc_nome');
             const senhaSalva = sessionStorage.getItem('botc_senha');
 
-            if (nomeSalvo && senhaSalva) {
-                // Preenche os campos automaticamente (opcional, para o usuário ver)
-                document.getElementById('player-name-input').value = nomeSalvo;
-                document.getElementById('player-password-input').value = senhaSalva;
-
-                // Tenta conectar automaticamente
-                console.log("Tentando reconexão automática para:", nomeSalvo);
-                conectar();
+            // Se não há nada no "pedágio", mostra a tela de login e encerra
+            if (!nomeSalvo || !senhaSalva) {
+                const loginArea = document.getElementById('login-area');
+                if (loginArea) loginArea.style.display = 'block';
+                return;
             }
-        };
+
+            const campoNome = document.getElementById('player-name-input');
+            const campoSenha = document.getElementById('player-password-input');
+
+            // 1. Verifica se os inputs já existem no HTML
+            if (campoNome && campoSenha) {
+                campoNome.value = nomeSalvo;
+                campoSenha.value = senhaSalva;
+
+                // 2. Verifica se a função conectar já está disponível (Firebase pronto)
+                if (typeof conectar === "function") {
+                    console.log("Auto-login: Inputs e Função prontos. Conectando...");
+                    conectar();
+                } else {
+                    // Se a função não existe ainda, espera 100ms e tenta de novo
+                    setTimeout(tentarAutoLogin, 100);
+                }
+            } else {
+                // Se os inputs ainda não apareceram, espera 50ms e tenta de novo
+                setTimeout(tentarAutoLogin, 50);
+            }
+        }
+
+        // Inicia a verificação imediatamente
+        tentarAutoLogin();
+
+        function pegarDadosDaURL() {
+            const params = new URLSearchParams(window.location.search);
+
+            const nome = params.get("nome");
+            const senha = params.get("senha");
+
+            // Só preenche se vierem da URL
+            if (nome && senha) {
+                sessionStorage.setItem("botc_nome", nome);
+                sessionStorage.setItem("botc_senha", senha);
+
+                console.log("Auto-login via URL detectado");
+            }
+        }
+        pegarDadosDaURL();
+
+        //#endregion
 
 
         // SINCRONIZAÇÕES
