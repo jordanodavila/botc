@@ -652,7 +652,11 @@
         // --- AUTOMAÇÃO LAVADEIRA ---
         const lavadeira = jogadores.find(p => p.personagem === "Lavadeira");
         if (lavadeira) {
-          const candidatosAldeoes = jogadores.filter(p => p.tipo === "Aldeão" && p.jogador !== lavadeira.jogador);
+          // const candidatosAldeoes = jogadores.filter(p => p.tipo === "Aldeão" && p.jogador !== lavadeira.jogador);
+          const candidatosAldeoes = jogadores.filter(p =>
+            p.tipo === "Aldeão" && p.personagem !== personagemDrunkEscolhido &&
+            p.jogador !== lavadeira.jogador
+          );
           if (candidatosAldeoes.length > 0) {
             const sorteadoReal = candidatosAldeoes[Math.floor(Math.random() * candidatosAldeoes.length)];
             const candidatosFakes = jogadores.filter(p => p.jogador !== lavadeira.jogador && p.jogador !== sorteadoReal.jogador);
@@ -668,7 +672,11 @@
         const bibliotecario = jogadores.find(p => p.personagem === "Bibliotecário");
         if (bibliotecario) {
           // 1. Filtra os Forasteiros (excluindo a si mesmo, caso o script permita)
-          const candidatosForasteiros = jogadores.filter(p => p.tipo === "Forasteiro" && p.jogador !== bibliotecario.jogador);
+          // const candidatosForasteiros = jogadores.filter(p => p.tipo === "Forasteiro" && p.jogador !== bibliotecario.jogador);
+          const candidatosForasteiros = jogadores.filter(p =>
+            (p.tipo === "Forasteiro" || p.personagem === personagemDrunkEscolhido) &&
+            p.jogador !== bibliotecario.jogador
+          );
 
           if (candidatosForasteiros.length > 0) {
             const sorteadoReal = candidatosForasteiros[Math.floor(Math.random() * candidatosForasteiros.length)];
@@ -676,7 +684,12 @@
             const candidatosFakes = jogadores.filter(p => p.jogador !== bibliotecario.jogador && p.jogador !== sorteadoReal.jogador);
             const sorteadoFake = candidatosFakes[Math.floor(Math.random() * candidatosFakes.length)];
 
-            updates['partida/escolhasNoite/selectedBibliotecárioRole'] = sorteadoReal.personagem;
+            // Lógica do Bêbado
+            const papelParaExibir = (sorteadoReal.personagem === personagemDrunkEscolhido) 
+                            ? "Bêbado" 
+                            : sorteadoReal.personagem;
+
+            updates['partida/escolhasNoite/selectedBibliotecárioRole'] = papelParaExibir;
             updates['partida/escolhasNoite/selectedBibliotecárioRealPlayer'] = sorteadoReal.jogador;
             updates['partida/escolhasNoite/selectedBibliotecárioFakePlayer'] = sorteadoFake.jogador;
           }
