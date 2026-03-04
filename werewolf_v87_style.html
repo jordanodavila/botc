@@ -586,7 +586,7 @@
                 <div class="header">
                     <h1>Roteiro</h1>
                 </div>
-                
+
                 <div class="section-title" style="margin-top: 20px; color: gold;">🕯️Praça da Cidade</div>
                 <div id="town-square-area" class="town-square-container">
                 </div>
@@ -2317,8 +2317,14 @@
                 else if (isNightPlus && victimThisNight == "Guardião" && (MongeProtectedRole !== victimThisNight || personagemEnvenenado === "Monge")) {
                     // TENHO QUE ADICIONAR UM IF. SE O MONGE ESTIVER VIVO, SE O ENVENENADOR ESTIVER VIVO
                     let GuardiãoOptions = '<option value="">Quem revelar personagem?</option>';
+                    // playersData.forEach(p => {
+                    //     GuardiãoOptions += `<option value="${p.personagem}">${p.jogador}</option>`;
+                    // });
+
                     playersData.forEach(p => {
-                        GuardiãoOptions += `<option value="${p.personagem}">${p.jogador}</option>`;
+                        if (p.jogador !== nomeRealGuardião) {
+                            GuardiãoOptions += `<option value="${p.personagem}">${p.jogador}</option>`;
+                        }
                     });
 
                     addAldeãoStep("Guardião", `Guardião (${nomeRealGuardião})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-Aldeão", `
@@ -2375,7 +2381,7 @@
                 }
 
                 // --- CENÁRIO D: ENVENENADO ---
-                else if (isNightPlus && (personagemEnvenenado === "Coveiro" || personagemDrunk === "Coveiro")) {
+                else if (isNightPlus && (personagemEnvenenado === "Coveiro" || personagemDrunk === "Coveiro") && (ultimoExecutado && ultimoExecutado !== "Ninguém")) {
                     const jogadorEncontrado = playersData.find(p => p.jogador === ultimoExecutado);
                     const personagemultimoExecutado = jogadorEncontrado ? jogadorEncontrado.personagem : "Sem mortes";
                     const opcoesFalsas = playersData
@@ -2485,7 +2491,7 @@
                 if (!EmpataVivo || (victimThisNight === "Empata" && (MongeProtectedRole !== victimThisNight || personagemEnvenenado === "Monge"))) {
                     addStep("Empata", `Empata (${nomeRealEmpata})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-dead", `
                     <div style="background:#546e7a; color:white; padding:15px; border-radius:8px; text-align:center; margin-top:10px;">
-                        <div style="font-size: 24px;"><img src="${urlImagemGhost}" style="width:60px; vertical-align:middle;"></div>
+                        <div style="font-size: 24px;"><img src="${urlImagemGhost}" style="width:40px; vertical-align:middle;"></div>
                         <strong>VOCÊ ESTÁ MORTO</strong><br>
                         <small>Fantasmas não podem usar habilidades noturnas, mas você ainda pode votar uma última vez no dia!</small>
                     </div>
