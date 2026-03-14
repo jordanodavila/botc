@@ -950,6 +950,12 @@
                 <h2>EU QUERO JOGAR UM JOGO</h2>
                 <p>Você foi capturado. Escolha sabiamente. O destino dos outros dois também depende de você.</p>
 
+                <div id="jigsaw-targets-display" style="color:#ff1744; font-weight:bold; margin-bottom:15px;"></div>
+
+                <div id="jigsaw-counter" style="color:#ff1744; font-weight:bold; margin-bottom:15px;">>
+                    Escolhas feitas: <span id="votes-count">0</span>/3
+                </div>
+
                 <div class="jigsaw-buttons">
                     <button onclick="enviarEscolhaJigsaw('viver')" class="btn-viver">QUERO VIVER (Egoísmo)</button>
                     <button onclick="enviarEscolhaJigsaw('morrer')" class="btn-morrer">ACEITO MORRER
@@ -3893,9 +3899,6 @@
             db.ref(`partida/escolhasNoite/jigsaw_choices/${loginJogador}`).set(decisao)
                 .then(() => {
                     console.log("Escolha registrada: " + decisao);
-                    document.getElementById('jigsaw-modal').style.display = 'flex';
-                    document.querySelector('.jigsaw-buttons').style.display = 'none';
-                    document.getElementById('jigsaw-wait-msg').style.display = 'block';
                 })
                 .catch(err => alert("Erro ao enviar escolha: " + err));
         }
@@ -4818,49 +4821,49 @@
             victimNameThisNight = val ? (Array.isArray(val) ? val : val.split(',')) : [];
         });
 
-        // Sincronizando o ataque do jigsaw
-        db.ref("partida/escolhasNoite/jigsaw_targets").on("value", (snapshot) => {
-            const val = snapshot.val();
-            alvosJigsawAtuais = val ? (Array.isArray(val) ? val : val.split(',')) : [];
+        // // Sincronizando o ataque do jigsaw
+        // db.ref("partida/escolhasNoite/jigsaw_targets").on("value", (snapshot) => {
+        //     const val = snapshot.val();
+        //     alvosJigsawAtuais = val ? (Array.isArray(val) ? val : val.split(',')) : [];
 
-            if (alvosJigsawAtuais.length > 0 && alvosJigsawAtuais.includes(loginJogador)) {
+        //     if (alvosJigsawAtuais.length > 0 && alvosJigsawAtuais.includes(loginJogador)) {
 
-                // NOVO: Monitorar as escolhas para saber se todos já responderam
-                db.ref("partida/escolhasNoite/jigsaw_choices").on("value", (choicesSnap) => {
-                    const escolhas = choicesSnap.val() || {};
-                    const numEscolhas = Object.keys(escolhas).length;
+        //         // NOVO: Monitorar as escolhas para saber se todos já responderam
+        //         db.ref("partida/escolhasNoite/jigsaw_choices").on("value", (choicesSnap) => {
+        //             const escolhas = choicesSnap.val() || {};
+        //             const numEscolhas = Object.keys(escolhas).length;
 
-                    const modal = document.getElementById('jigsaw-modal');
-                    const buttons = document.querySelector('.jigsaw-buttons');
-                    const waitMsg = document.getElementById('jigsaw-wait-msg');
+        //             const modal = document.getElementById('jigsaw-modal');
+        //             const buttons = document.querySelector('.jigsaw-buttons');
+        //             const waitMsg = document.getElementById('jigsaw-wait-msg');
 
-                    // SE JÁ TEMOS 3 ESCOLHAS: O jogo acabou, fecha o modal para todos
-                    if (numEscolhas >= 3) {
-                        if (modal) modal.style.display = 'none';
-                        return; // Interrompe a execução aqui
-                    }
+        //             // SE JÁ TEMOS 3 ESCOLHAS: O jogo acabou, fecha o modal para todos
+        //             if (numEscolhas >= 3) {
+        //                 if (modal) modal.style.display = 'none';
+        //                 return; // Interrompe a execução aqui
+        //             }
 
-                    // Lógica normal de exibição se ainda faltarem respostas
-                    if (modal) modal.style.display = 'flex';
+        //             // Lógica normal de exibição se ainda faltarem respostas
+        //             if (modal) modal.style.display = 'flex';
 
-                    if (!escolhas[loginJogador]) {
-                        if (buttons) buttons.style.display = 'flex';
-                        if (waitMsg) waitMsg.style.display = 'none';
-                    } else {
-                        if (buttons) buttons.style.display = 'none';
-                        if (waitMsg) waitMsg.style.display = 'block';
-                    }
-                });
+        //             if (!escolhas[loginJogador]) {
+        //                 if (buttons) buttons.style.display = 'flex';
+        //                 if (waitMsg) waitMsg.style.display = 'none';
+        //             } else {
+        //                 if (buttons) buttons.style.display = 'none';
+        //                 if (waitMsg) waitMsg.style.display = 'block';
+        //             }
+        //         });
 
-            } else {
-                const modal = document.getElementById('jigsaw-modal');
-                if (modal) modal.style.display = 'none';
-            }
+        //     } else {
+        //         const modal = document.getElementById('jigsaw-modal');
+        //         if (modal) modal.style.display = 'none';
+        //     }
 
-            if (typeof renderScript === "function") {
-                renderScript();
-            }
-        });
+        //     if (typeof renderScript === "function") {
+        //         renderScript();
+        //     }
+        // });
 
 
         // LISTENER DO JIGSAW
@@ -4873,6 +4876,7 @@
 
             // 2. Sincroniza Escolhas (jigsaw_choices)
             escolhasGlobaisJigsaw = data.jigsaw_choices || {};
+            const numEscolhas = Object.keys(escolhasGlobaisJigsaw).length;
 
             // 3. Sincroniza Vítimas Gerais (Para o resto do jogo)
             const vNames = data.victimNameThisNight;
@@ -4883,7 +4887,17 @@
             const buttons = document.querySelector('.jigsaw-buttons');
             const waitMsg = document.getElementById('jigsaw-wait-msg');
 
-            const numEscolhas = Object.keys(escolhasGlobaisJigsaw).length;
+            // 4B - MOSTRAR ESCOLHIDOS
+            const targetDisplay = document.getElementById('jigsaw-targets-display');
+            if (targetDisplay) {
+                targetDisplay.innerText = "Prisioneiros: " + alvosJigsawAtuais.join(", ");
+            }
+
+            // 4C - MOSTRA QUANTIDADE DE VOTOS
+            const counterElement = document.getElementById('votes-count');
+            if (counterElement) {
+                counterElement.innerText = numEscolhas;
+            }
 
             // CONDIÇÃO DE FECHAMENTO: Se não houver alvos ou se os 3 já responderam
             if (alvosJigsawAtuais.length === 0 || numEscolhas >= 3) {
@@ -4909,6 +4923,11 @@
                 renderScript();
             }
         });
+
+        // Gatilho Fantasma (forçar o firebase)
+        setTimeout(() => {
+            db.ref("partida/escolhasNoite/lastUpdate").set(Date.now());
+        }, 10000);
 
         // Sincronizando a lavadeira
         db.ref('partida/escolhasNoite/selectedLavadeiraRole').on('value', (snapshot) => {
