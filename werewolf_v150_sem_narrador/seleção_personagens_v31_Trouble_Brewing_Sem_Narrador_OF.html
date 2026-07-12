@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BOTC – Narrador</title>
+  <!-- <img src="numero_jogadores.png" alt="Imagem local"> -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 10px;
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    .section {
+      margin-bottom: 20px;
+    }
+
+    .character {
+      border-bottom: 1px solid #ddd;
+      padding: 8px 0;
+    }
+
+    .character small {
+      color: #555;
+      display: block;
+    }
+
+    input[type="text"] {
+      margin-top: 5px;
+      width: 95%;
+    }
+
+    button {
+      padding: 10px;
+      margin: 5px 0;
+      width: 100%;
+    }
+
+    .card {
+      border-radius: 6px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+
+    .Aldeão {
+      background: #2b9453;
+    }
+
+    .Forasteiro {
+      background: #2280a9;
+    }
+
+    .Minion {
+      background: #b62937;
+    }
+
+    .Evil {
+      background: #e80d0d;
+    }
+
+    #snackbar {
+      visibility: hidden;
+      background: #333;
+      color: #fff;
+      text-align: center;
+      padding: 10px;
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 5px;
+    }
+
+    #snackbar.show {
+      visibility: visible;
+    }
+
+    /* REORDENAÇÃO DE ASSENTOS */
+    .reorder-item {
+      transition: all 0.2s;
+      touch-action: manipulation;
+      /* Melhora resposta no celular */
+      cursor: pointer;
+    }
+
+    .reorder-item.selected {
+      background-color: #fff9c4 !important;
+      /* Amarelo destaque */
+      border: 2px solid #fbc02d !important;
+      transform: scale(1.02);
+    }
+
+    /* Cores do Setup */
+    .bg-aldeao {
+      background-color: rgba(46, 125, 50, 0.2);
+      border-left: 5px solid #2e7d32;
+    }
+
+    /* Verde */
+    .bg-forasteiro {
+      background-color: rgba(21, 101, 192, 0.2);
+      border-left: 5px solid #1565c0;
+    }
+
+    /* Azul */
+    .bg-minion {
+      background-color: rgba(211, 47, 47, 0.2);
+      border-left: 5px solid #d32f2f;
+    }
+
+    /* Vermelho Fraco */
+    .bg-evil {
+      background-color: rgba(183, 28, 28, 0.6);
+      border-left: 5px solid #b71c1c;
+    }
+
+    /* Vermelho Forte */
+
+    .character {
+      padding: 10px;
+      margin-bottom: 8px;
+      border-radius: 5px;
+      transition: all 0.2s;
+    }
+
+    .type-badge {
+      font-size: 0.7em;
+      text-transform: uppercase;
+      font-weight: bold;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      margin-right: 5px;
+    }
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-database-compat.js"></script>
+</head>
+
+<body>
+
+  <div class="setup-table-container" style="width: 100%; margin-top: 25px; box-sizing: border-box;">
+    <div style="padding: 20px; border: 2px solid #5D4037; border-radius: 12px; background: #FFF;">
+      <div class="section-title"
+        style="color: #5D4037; border-bottom: 2px solid #5D4037; margin-bottom: 15px; font-weight: bold;">
+        👥 Configuração da Partida (Setup)
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; text-align: center; font-family: 'Georgia', serif;">
+          <thead>
+            <tr style="background-color: #f5f5f5;">
+              <th style="border: 1px solid #ddd; padding: 10px; color: #333;">Total de Jogadores</th>
+              <th style="border: 1px solid #ddd; padding: 10px; color: #1E88E5;">Aldeões (Townsfolk)</th>
+              <th style="border: 1px solid #ddd; padding: 10px; color: #0288D1;">Forasteiros (Outsiders)</th>
+              <th style="border: 1px solid #ddd; padding: 10px; color: #B71C1C;">Minions</th>
+              <th style="border: 1px solid #ddd; padding: 10px; color: #000;">Lobisomens</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">5</td>
+              <td style="border: 1px solid #ddd; color: #1E88E5;">3</td>
+              <td style="border: 1px solid #ddd;">0</td>
+              <td style="border: 1px solid #ddd; color: #B71C1C;">1</td>
+              <td style="border: 1px solid #ddd;">1</td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">6</td>
+              <td style="border: 1px solid #ddd; color: #1E88E5;">3</td>
+              <td style="border: 1px solid #ddd;">1</td>
+              <td style="border: 1px solid #ddd; color: #B71C1C;">1</td>
+              <td style="border: 1px solid #ddd;">1</td>
+            </tr>
+            <tr style="background-color: #E3F2FD;">
+              <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">7</td>
+              <td style="border: 1px solid #ddd; color: #1E88E5;">5</td>
+              <td style="border: 1px solid #ddd;">0</td>
+              <td style="border: 1px solid #ddd; color: #B71C1C;">1</td>
+              <td style="border: 1px solid #ddd;">1</td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">8</td>
+              <td style="border: 1px solid #ddd; color: #1E88E5;">5</td>
+              <td style="border: 1px solid #ddd;">1</td>
+              <td style="border: 1px solid #ddd; color: #B71C1C;">1</td>
+              <td style="border: 1px solid #ddd;">1</td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">9</td>
+              <td style="border: 1px solid #ddd; color: #1E88E5;">5</td>
+              <td style="border: 1px solid #ddd;">2</td>
+              <td style="border: 1px solid #ddd; color: #B71C1C;">1</td>
+              <td style="border: 1px solid #ddd;">1</td>
+            </tr>
+            <tr style="background-color: #E3F2FD;">
+              <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">10</td>
+              <td style="border: 1px solid #ddd; color: #1E88E5;">7</td>
+              <td style="border: 1px solid #ddd;">0</td>
+              <td style="border: 1px solid #ddd; color: #B71C1C;">2</td>
+              <td style="border: 1px solid #ddd;">1</td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">11</td>
+              <td style="border: 1px solid #ddd; color: #1E88E5;">7</td>
+              <td style="border: 1px solid #ddd;">1</td>
+              <td style="border: 1px solid #ddd; color: #B71C1C;">2</td>
+              <td style="border: 1px solid #ddd;">1</td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">12</td>
+              <td style="border: 1px solid #ddd; color: #1E88E5;">7</td>
+              <td style="border: 1px solid #ddd;">2</td>
+              <td style="border: 1px solid #ddd; color: #B71C1C;">2</td>
+              <td style="border: 1px solid #ddd;">1</td>
+            </tr>
+            <tr style="background-color: #E3F2FD;">
+              <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">13</td>
+              <td style="border: 1px solid #ddd; color: #1E88E5;">9</td>
+              <td style="border: 1px solid #ddd;">0</td>
+              <td style="border: 1px solid #ddd; color: #B71C1C;">3</td>
+              <td style="border: 1px solid #ddd;">1</td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">14</td>
+              <td style="border: 1px solid #ddd; color: #1E88E5;">9</td>
+              <td style="border: 1px solid #ddd;">1</td>
+              <td style="border: 1px solid #ddd; color: #B71C1C;">3</td>
+              <td style="border: 1px solid #ddd;">1</td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">15+</td>
+              <td style="border: 1px solid #ddd; color: #1E88E5;">9</td>
+              <td style="border: 1px solid #ddd;">2</td>
+              <td style="border: 1px solid #ddd; color: #B71C1C;">3</td>
+              <td style="border: 1px solid #ddd;">1</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size: 11px; color: #777; margin-top: 10px; font-style: italic;">* Baseado nas regras oficiais de
+        contagem de residentes.</p>
+    </div>
+  </div>
+
+  <button onclick="abrirReordenacao()" style="background-color: #2196F3; color: white; margin-top: 10px;">
+    🔄 Ajustar Assentos (Pós-Sorteio)
+  </button>
+
+  <!-- AJUSTAR POSIÇÃO NA MESA -->
+  <div id="reorder-container"
+    style="display:none; background: #fff; border: 2px solid #5D4037; padding: 15px; border-radius: 12px; margin-top: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+    <h3 style="color: #5D4037; margin-top: 0;">🔄 Reordenar Assentos</h3>
+    <p style="font-size: 12px; color: #666;">Use as setas para organizar os jogadores conforme a posição física na mesa
+      (sentido horário).</p>
+
+    <div id="reorder-list" style="margin-bottom: 15px;">
+    </div>
+
+    <button onclick="salvarNovaOrdem()" style="background-color: #4CAF50; color: white;">💾 Salvar Nova Ordem</button>
+    <button onclick="document.getElementById('reorder-container').style.display='none'"
+      style="background-color: #9e9e9e; color: white;">Cancelar</button>
+  </div>
+
+  <button onclick="limparPartidaFirebase()" style="background-color: #f44336; color: white; margin-top: 10px;">
+    🗑️ Resetar Partida no Firebase
+  </button>
+
+  <button onclick="editarPartidaFirebase()" style="background-color: #ff9800; color: white; margin-top: 10px;">
+    ✏️ Editar Partida do Firebase
+  </button>
+
+
+  <div id="sorteio-container"
+    style="background: #f0f0f0; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px dashed #5D4037;">
+    <h3>🎲 Sorteio Rápido</h3>
+    <label>Cole os nomes dos jogadores (um por linha):</label><br>
+    <textarea id="listaNomesSorteio" rows="6" style="width: 95%; margin-top: 10px;"
+      placeholder="Ex:&#10;João&#10;Maria&#10;Pedro..."></textarea>
+    <button onclick="gerarSorteioAleatorio()" style="background-color: #4CAF50; color: white; margin-top: 10px;">
+      🔀 Sortear e Preencher
+    </button>
+  </div>
+
+  <div id="screen1">
+    <h2>Configuração da Partida</h2>
+
+    <label>Total de Personagens (Slots)</label>
+    <input type="number" id="numPlayers" value="5">
+
+    <div id="characters"></div>
+
+    <button onclick="validateSetup()">Avançar</button>
+  </div>
+
+  <!-- <div id="screen2" style="display:none">
+  <h2>Ordem Noturna – Noite 1</h2>
+  <div id="orderList"></div>
+  <button onclick="goBack()">Voltar</button>
+  <button onclick="saveGame()">Salvar Jogo</button>
+</div> -->
+
+  <div id="screen2" style="display:none">
+    <h2>Ordem Noturna – Noite 1</h2>
+    <div id="orderList"></div>
+    <div id="drunk-selection-container"
+      style="margin-top: 15px; padding: 10px; border: 1px solid #795548; border-radius: 8px; background-color: #efebe9;">
+      <label for="selectDrunk" style="color: #5d4037; font-weight: bold;">🧧 Quem é o Bêbado (Drunk)?</label>
+      <select id="selectDrunk">
+        <option value="">Ninguém é o Bêbado</option>
+      </select>
+      <p style="font-size: 11px; color: #795548; margin-top: 5px;">* Escolha qual Aldeão terá o estado envenenado até o
+        fim da partida.</p>
+    </div>
+    <button onclick="goBack()">Voltar</button>
+    <button onclick="saveGame()">Salvar Jogo (Navegador)</button> <button onclick="downloadGame()">Baixar Backup
+      JSON</button>
+    <button onclick="enviarParaFirebase()" style="background-color: #673ab7; color: white;">
+      🚀 Salvar no Firebase
+    </button>
+  </div>
+
+  <div id="lista-senhas"></div>
+
+  <div id="snackbar"></div>
+
+  <script>
+    const _0x24899d=_0x59d1;(function(_0x56563b,_0x3ad6d5){const _0x5dffb9=_0x59d1,_0x38be5b=_0x56563b();while(!![]){try{const _0x26a041=-parseInt(_0x5dffb9(0x196))/0x1+-parseInt(_0x5dffb9(0x151))/0x2+parseInt(_0x5dffb9(0x144))/0x3*(parseInt(_0x5dffb9(0x13a))/0x4)+-parseInt(_0x5dffb9(0x1cc))/0x5+-parseInt(_0x5dffb9(0xee))/0x6+parseInt(_0x5dffb9(0x150))/0x7+parseInt(_0x5dffb9(0x10c))/0x8*(parseInt(_0x5dffb9(0x11e))/0x9);if(_0x26a041===_0x3ad6d5)break;else _0x38be5b['push'](_0x38be5b['shift']());}catch(_0x21ec2b){_0x38be5b['push'](_0x38be5b['shift']());}}}(_0x1cd8,0x3c4cd));function _0x59d1(_0x963f53,_0x311d42){_0x963f53=_0x963f53-0xdf;const _0x1cd8ca=_0x1cd8();let _0x59d14c=_0x1cd8ca[_0x963f53];return _0x59d14c;}const firebaseConfig={'apiKey':_0x24899d(0x175),'authDomain':_0x24899d(0x182),'projectId':_0x24899d(0x10e),'storageBucket':_0x24899d(0x12a),'messagingSenderId':'177329283782','appId':_0x24899d(0x110)};firebase[_0x24899d(0x135)](firebaseConfig);const db=firebase[_0x24899d(0x1bb)](),PERSONAGENS=[{'tipo':'Aldeão','nome':_0x24899d(0xff),'habilidade':_0x24899d(0x1c6)},{'tipo':_0x24899d(0x1bd),'nome':_0x24899d(0xea),'habilidade':_0x24899d(0xf6)},{'tipo':'Aldeão','nome':_0x24899d(0x106),'habilidade':_0x24899d(0x13c)},{'tipo':'Aldeão','nome':_0x24899d(0x1ab),'habilidade':_0x24899d(0x12e)},{'tipo':_0x24899d(0x1bd),'nome':_0x24899d(0x102),'habilidade':_0x24899d(0x191)},{'tipo':_0x24899d(0x1bd),'nome':_0x24899d(0x1a8),'habilidade':_0x24899d(0xfc)},{'tipo':_0x24899d(0x1bd),'nome':_0x24899d(0x109),'habilidade':'Cada\x20noite\x20(exceto\x20a\x20primeira)\x20você\x20aprende\x20qual\x20personagem\x20morreu\x20por\x20execução\x20hoje.'},{'tipo':_0x24899d(0x1bd),'nome':_0x24899d(0x1be),'habilidade':_0x24899d(0x1c4)},{'tipo':_0x24899d(0x1bd),'nome':'Guardião','habilidade':_0x24899d(0x194)},{'tipo':_0x24899d(0x1bd),'nome':'Virgem','habilidade':_0x24899d(0x16f)},{'tipo':_0x24899d(0x1bd),'nome':_0x24899d(0x18f),'habilidade':_0x24899d(0x1a5)},{'tipo':_0x24899d(0x1bd),'nome':'Soldado','habilidade':_0x24899d(0x16a)},{'tipo':_0x24899d(0x1bd),'nome':'Prefeito','habilidade':_0x24899d(0x12b)},{'tipo':_0x24899d(0x18c),'nome':_0x24899d(0x13b),'habilidade':'Cada\x20noite\x20você\x20escolhe\x20um\x20jogador\x20(não\x20você\x20mesmo):\x20amanhã,\x20você\x20só\x20poderá\x20votar\x20se\x20esta\x20pessoa\x20escolhida\x20votar.'},{'tipo':_0x24899d(0x18c),'nome':_0x24899d(0x14d),'habilidade':'Você\x20pode\x20se\x20aparecer\x20como\x20mal,\x20como\x20um\x20minion\x20ou\x20Lobisomem,\x20mesmo\x20que\x20morto.'},{'tipo':_0x24899d(0x18c),'nome':_0x24899d(0x18b),'habilidade':_0x24899d(0x17f)},{'tipo':_0x24899d(0x116),'nome':_0x24899d(0x1ca),'habilidade':_0x24899d(0x1c0)},{'tipo':_0x24899d(0x116),'nome':_0x24899d(0x138),'habilidade':_0x24899d(0x1d0)},{'tipo':_0x24899d(0x116),'nome':_0x24899d(0xe1),'habilidade':_0x24899d(0x198)},{'tipo':'Minion','nome':_0x24899d(0xed),'habilidade':_0x24899d(0x13d)},{'tipo':_0x24899d(0x1c7),'nome':_0x24899d(0x104),'habilidade':'Cada\x20noite\x20(exceto\x20a\x20primeira),\x20escolha\x20um\x20jogador\x20para\x20morrer.'}],NIGHT_ORDER_1=[_0x24899d(0x104),'Espião',_0x24899d(0x1ca),_0x24899d(0xe1),_0x24899d(0x13b),'Monge',_0x24899d(0x102),'Cartomante',_0x24899d(0x106),_0x24899d(0xea),_0x24899d(0xff),_0x24899d(0x1c2),_0x24899d(0x109),_0x24899d(0x105)],charactersDiv=document[_0x24899d(0x122)]('characters');PERSONAGENS['forEach'](_0x12f825=>{const _0x4b82c4=_0x24899d,_0x4e476f=document[_0x4b82c4(0x18e)](_0x4b82c4(0x156));let _0x364b95='';switch(_0x12f825[_0x4b82c4(0x136)]){case'Aldeão':_0x364b95=_0x4b82c4(0x176);break;case _0x4b82c4(0x18c):_0x364b95='bg-forasteiro';break;case _0x4b82c4(0x116):_0x364b95=_0x4b82c4(0x1c1);break;case _0x4b82c4(0x1c7):_0x364b95='bg-evil';break;}_0x4e476f['className']=_0x4b82c4(0x19e)+_0x364b95,_0x4e476f[_0x4b82c4(0x15f)]='\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20style=\x22display:\x20flex;\x20justify-content:\x20space-between;\x20align-items:\x20center;\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<label\x20style=\x22cursor:\x20pointer;\x20display:\x20flex;\x20align-items:\x20center;\x20gap:\x208px;\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<input\x20type=\x22checkbox\x22\x20data-name=\x22'+_0x12f825[_0x4b82c4(0x167)]+'\x22\x20data-tipo=\x22'+_0x12f825[_0x4b82c4(0x136)]+_0x4b82c4(0x16b)+_0x12f825[_0x4b82c4(0x136)]+_0x4b82c4(0x165)+_0x12f825[_0x4b82c4(0x167)]+_0x4b82c4(0xf3)+_0x12f825[_0x4b82c4(0x16c)]+'</small>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<input\x20type=\x22text\x22\x20placeholder=\x22Nome\x20do\x20jogador\x22\x20\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20style=\x22display:none;\x20width:\x20100%;\x20margin-top:\x208px;\x20padding:\x205px;\x20border-radius:\x204px;\x20border:\x201px\x20solid\x20#555;\x20background:\x20#222;\x20color:\x20white;\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20';const _0x375988=_0x4e476f['querySelector'](_0x4b82c4(0xf8)),_0x511658=_0x4e476f[_0x4b82c4(0x160)]('input[type=text]');_0x375988['onchange']=()=>{const _0x5bc5e3=_0x4b82c4;_0x511658[_0x5bc5e3(0x152)]['display']=_0x375988[_0x5bc5e3(0x14f)]?_0x5bc5e3(0xfd):_0x5bc5e3(0xe4);if(!_0x375988[_0x5bc5e3(0x14f)])_0x511658[_0x5bc5e3(0x1a3)]='';_0x4e476f[_0x5bc5e3(0x152)]['filter']=_0x375988[_0x5bc5e3(0x14f)]?'brightness(1.2)':_0x5bc5e3(0x12f),_0x4e476f[_0x5bc5e3(0x152)][_0x5bc5e3(0x131)]=_0x375988[_0x5bc5e3(0x14f)]?_0x5bc5e3(0x17d):_0x5bc5e3(0xe4);},charactersDiv[_0x4b82c4(0xec)](_0x4e476f);});function showMsg(_0x11a6b,_0x3e5a9c=![]){const _0x274b22=_0x24899d,_0x4a2d71=document[_0x274b22(0x122)]('snackbar');_0x4a2d71[_0x274b22(0x134)]=_0x11a6b,_0x4a2d71[_0x274b22(0x152)]['background']=_0x3e5a9c?_0x274b22(0x153):_0x274b22(0x184),_0x4a2d71[_0x274b22(0x146)]=_0x274b22(0x13e),setTimeout(()=>_0x4a2d71[_0x274b22(0x146)]='',0xbb8);}function _0x1cd8(){const _0x2b0e06=['personagens_selecionados','partida/configuracao/blefesLobisomem','character\x20',')</strong><br>\x0a\x20\x20\x20\x20\x20\x20Jogador:\x20','partida/escolhasNoite/selectedLavadeiraRole','<br>\x0a\x20\x20\x20\x20\x20\x20<small>','Nenhuma\x20partida\x20encontrada\x20no\x20Firebase.','value','partida/escolhasNoite/selectedInvestigadorRole','Uma\x20vez\x20por\x20jogo,\x20durante\x20o\x20dia,\x20escolha\x20publicamente\x20um\x20jogador:\x20se\x20ele\x20for\x20o\x20Lobisomem,\x20ele\x20morre.','setup_botc','https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_assassino_yd41.html','Cartomante','Preencha\x20todos\x20os\x20nomes.','https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_matador_4k6p.html','Chefe','download','Vovó','https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_guardião_83tg.html','Selecione\x20exatamente\x20','✅\x20Posições\x20atualizadas\x20com\x20sucesso!','https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_kraken_d6wl.html','https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_recluso_y8ur.html','reorder-list','O\x20jogo\x20precisa\x20de\x20um\x20monstro.','https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_apostador_phvx.html','🍷\x20ALERTA\x20DE\x20REGRA:\x20BARÃO\x0a\x0a','https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_lobisomem_6vaz.html','partida/escolhasNoite/selectedLavadeiraRealPlayer','https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_padrinho_vkpv.html','trim','database','partida/jogadores','Aldeão','Monge','https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_pukka_kkq1.html','Cada\x20noite,\x20escolha\x20um\x20jogador:\x20ele\x20estará\x20envenenado\x20à\x20noite\x20e\x20à\x20amanhã.','bg-minion','Drunk','key','Cada\x20noite\x20(exceto\x20a\x20primeira)\x20você\x20escolhe\x20um\x20jogador\x20(não\x20você\x20mesmo):\x20ele\x20estará\x20a\x20salvo\x20do\x20Lobisomem\x20por\x20uma\x20noite.','forEach','Você\x20começa\x20sabendo\x20que\x201\x20de\x202\x20jogadores\x20é\x20Aldeão\x20e\x20qual\x20o\x20personagem.','Evil','partida/configuracao/matadorJaAtirou','Deseja\x20ignorar\x20a\x20regra\x20e\x20enviar\x20assim\x20mesmo?','Envenenador','https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_santo_fr9o.html','2555iYFYRe','setItem','<option\x20value=\x22\x22>Ninguém\x20é\x20o\x20Bêbado</option>','createObjectURL','Cada\x20noite,\x20você\x20vê\x20o\x20grimório.\x20Você\x20pode\x20parecer\x20ser\x20um\x20Aldeão\x20ou\x20Forasteiro,\x20mesmo\x20que\x20morto.','length','selectDrunk','Mulher\x20Escarlate','https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_chefe_pi4o.html','filter','none','input[type=\x22text\x22]','https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_cartomante_hu9b.html','partida','indexOf','https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_bibliotecário_81f4.html','Bibliotecário','partida/escolhasNoite/selectedBibliotecárioRole','appendChild','Barão','2675148cVgpiA','https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_soldado_wsqw.html','personagem','Insira\x20os\x20nomes\x20dos\x20jogadores\x20primeiro.','partida/configuracao/app_ativo','</strong></span>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20</label>\x0a\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20style=\x22margin-top:\x205px;\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<small\x20style=\x22display:\x20block;\x20line-height:\x201.2;\x20color:\x20#black;\x22>','input[type=text]','Bêbado','Você\x20começa\x20sabendo\x20que\x201\x20de\x202\x20jogadores\x20é\x20um\x20Forasteiro\x20e\x20qual\x20o\x20personagem\x20(Ou\x20que\x20zero\x20estão\x20em\x20jogo.)','https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_investigador_tdzj.html','input[type=checkbox]','screen1','add','partida/configuracao/statusLobby','Cada\x20noite\x20você\x20escolhe\x202\x20jogadores\x20e\x20aprende\x20se\x20qualquer\x20um\x20deles\x20é\x20um\x20Lobisomem.\x20Há\x20um\x20bom\x20jogador\x20que\x20se\x20aparecerá\x20como\x20um\x20Lobisomem\x20para\x20você.','block','insertBefore','Lavadeira','update','toUpperCase','Empata','toISOString','Lobisomem','Guardião','Investigador','partida/escolhasNoite/selectedInvestigadorFakePlayer','Lendo\x20grimório...','Coveiro','🔥\x20Árvore\x20\x27partida\x27\x20removida\x20com\x20sucesso!','evil','3785432xmUeYS','reorder-item','werewolf-877af','listaNomesSorteio','1:177329283782:web:30a6c6cf8732df0f802dc7','join','floor','includes','partida/configuracao/virgemJaNomeada','.character','Minion','https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_prefeito_vtpn.html','Erro\x20ao\x20salvar\x20ordem:\x20','catch','partida/configuracao/personagemDrunk/','display','slice','https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_vovó_04s0.html','9ZoKRoK','name','Dados\x20e\x20lista\x20de\x20nomes\x20carregados!','O\x20jogo\x20precisa\x20de\x20no\x20mínimo\x205\x20jogadores.','getElementById','https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_envenenador_461p.html','https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_lavadeira_on70.html','partida/configuracao/vovoNetoPersonagemFake','.json','jogador','closest','https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_empata_yiat.html','werewolf-877af.firebasestorage.app','Se\x20apenas\x20três\x20jogadores\x20viverem\x20e\x20nenhuma\x20execução\x20ocorrer,\x20sua\x20equipe\x20vence.\x0a\x20Se\x20você\x20morrer\x20à\x20noite,\x20outro\x20jogador\x20do\x20bem\x20pode\x20morrer\x20no\x20seu\x20lugar.','⚠️\x20O\x20Bibliotecário\x20está\x20em\x20jogo,\x20mas\x20NÃO\x20há\x20Forasteiros\x20(nem\x20Bêbado)\x20na\x20partida.\x0a\x0aEle\x20NÃO\x20receberá\x20a\x20informação\x20de\x20\x27ZERO\x27.\x20Deseja\x20continuar?','https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_estalajadeiro_v2jj.html','Você\x20começa\x20sabendo\x20quantos\x20pares\x20de\x20jogadores\x20do\x20mal\x20existem.','brightness(1)','once','boxShadow','https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_lunático_mx63.html','some','innerText','initializeApp','tipo','partida/jogadores/','Espião','Erro\x20ao\x20limpar:\x20','204ziPXUF','Mordomo','Você\x20começa\x20sabendo\x20que\x201\x20de\x202\x20jogadores\x20é\x20um\x20Minion\x20e\x20qual\x20o\x20personagem.','Adiciona\x202\x20Forasteiros\x20extras\x20ao\x20jogo.','show','nextSibling','push','textContent','replace','https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_dama\x20do\x20chá_rx63.html','10389eZomOU','minion','className','aldeao','Erro\x20ao\x20buscar\x20dados:\x20','screen2','remove','then','input[data-name=\x22','Recluso','https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_marinheiro_q32t.html','checked','1262744lSduai','62722uYWooW','style','#E53935','</strong><br>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<small\x20style=\x22color:\x20#666;\x22>','/posicao','div','partida/escolhasNoite/selectedLavadeiraFakePlayer','getItem','🔥\x20Sincronizado\x20com\x20os\x20celulares!','stringify','ref','.reorder-item\x20span:first-child','Erro\x20ao\x20enviar:\x20','</small>\x0a\x20\x20\x20\x20','innerHTML','querySelector','https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_virgem_0xwr.html','Nenhum\x20jogo\x20salvo\x20para\x20baixar.','.\x0a\x0a','https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_advogado\x20do\x20diabo_9l0b.html','</span>\x20<strong>','.reorder-item','nome','partida/configuracao/vovoNetoJogadorFake','removeChild','Você\x20está\x20a\x20salvo\x20do\x20Lobisomem.','\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<span><span\x20class=\x22type-badge\x22>','habilidade','selected','dataset','Na\x20primeira\x20vez\x20em\x20que\x20você\x20é\x20indicado,\x20se\x20o\x20nomeador\x20for\x20um\x20Aldeão,\x20ele\x20é\x20executado\x20imediatamente.','botc_backup_','click','\x20forasteiros\x20(Base\x20','option','body','AIzaSyDxCSYH31D5NjuvtTOpqs4XLUaee2fZ_iU','bg-aldeao','</span>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20style=\x22flex-grow:1;\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<strong>','</small>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20style=\x22font-size:\x2020px;\x22>🔄</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20','partida/escolhasNoite/selectedBibliotecárioRealPlayer','https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_monge_fge5.html','https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_geryon_6tjj.html','random','0\x200\x2010px\x20rgba(255,255,255,0.1)','val','Se\x20você\x20morrer\x20por\x20execução,\x20sua\x20equipe\x20perde.','forasteiro','https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_mulher\x20escarlate_9e35.html','werewolf-877af.firebaseapp.com','map','#4CAF50','https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_todos_u3hv.html','split','pop','numPlayers','https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_bobo_ouw2.html','Carregando\x20dados\x20do\x20Firebase...','Santo','Forasteiro','aberto','createElement','Matador','https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_cortesão_r1iq.html','Cada\x20noite\x20você\x20aprende\x20quantos\x20de\x20seus\x202\x20vizinhos\x20vivos\x20são\x20maus.','https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_menestrel_z0u6.html','querySelectorAll','Se\x20você\x20morrer\x20à\x20noite,\x20será\x20acordado\x20para\x20escolher\x20um\x20jogador\x20e\x20aprender\x20o\x20personagem\x20dele.','find','105465OswvVH','card\x20','Se\x20houver\x205\x20ou\x20mais\x20jogadores\x20vivos\x20(viajantes\x20não\x20contam)\x20e\x20o\x20Lobisomem\x20morrer,\x20você\x20se\x20torna\x20o\x20Lobisomem.','classList','\x20jogadores,\x20a\x20regra\x20exige\x20','sort'];_0x1cd8=function(){return _0x2b0e06;};return _0x1cd8();}function limparPartidaFirebase(){const _0xe4b61d=_0x24899d;confirm('Tem\x20certeza\x20que\x20deseja\x20apagar\x20todos\x20os\x20dados\x20da\x20partida\x20atual?')&&db[_0xe4b61d(0x15b)](_0xe4b61d(0xe7))[_0xe4b61d(0x14a)]()[_0xe4b61d(0x14b)](()=>{const _0x17b40c=_0xe4b61d;showMsg(_0x17b40c(0x10a));})['catch'](_0x58b4cf=>{const _0x2b1090=_0xe4b61d;showMsg(_0x2b1090(0x139)+_0x58b4cf,!![]);});}function editarPartidaFirebase(){const _0x5c3550=_0x24899d;showMsg(_0x5c3550(0x18a)),db[_0x5c3550(0x15b)](_0x5c3550(0x1bc))['once'](_0x5c3550(0x1a3))['then'](_0x5bfbb6=>{const _0x791167=_0x5c3550,_0x5cfff1=_0x5bfbb6[_0x791167(0x17e)]();if(!_0x5cfff1){showMsg(_0x791167(0x1a2),!![]);return;}document[_0x791167(0x193)]('.character')[_0x791167(0x1c5)](_0x5f5958=>{const _0x27ded9=_0x791167,_0x3e484c=_0x5f5958[_0x27ded9(0x160)](_0x27ded9(0xf8)),_0x41e1dc=_0x5f5958['querySelector'](_0x27ded9(0xf4));_0x3e484c[_0x27ded9(0x14f)]=![],_0x41e1dc['value']='',_0x41e1dc['style'][_0x27ded9(0x11b)]='none';});let _0x12a8c4=0x0,_0x1dfbd8=[];for(let _0x15fbb7 in _0x5cfff1){const _0x56d25f=_0x5cfff1[_0x15fbb7],_0x1a4868=_0x56d25f[_0x791167(0x127)][_0x791167(0x101)]();_0x1dfbd8[_0x791167(0x140)](_0x1a4868);const _0x2757c4=document['querySelector'](_0x791167(0x14c)+_0x56d25f[_0x791167(0xf0)]+'\x22]');if(_0x2757c4){const _0x5a3709=_0x2757c4[_0x791167(0x128)](_0x791167(0x115)),_0x2c0621=_0x5a3709['querySelector'](_0x791167(0xe5));_0x2757c4['checked']=!![],_0x2c0621[_0x791167(0x1a3)]=_0x1a4868,_0x2c0621[_0x791167(0x152)][_0x791167(0x11b)]=_0x791167(0xfd),_0x12a8c4++;}}const _0x677831=document['getElementById']('listaNomesSorteio');_0x677831&&(_0x677831['value']=_0x1dfbd8[_0x791167(0x111)]('\x0a')),document['getElementById']('numPlayers')[_0x791167(0x1a3)]=_0x12a8c4,document[_0x791167(0x122)](_0x791167(0xf9))[_0x791167(0x152)][_0x791167(0x11b)]=_0x791167(0xfd),document[_0x791167(0x122)](_0x791167(0x149))[_0x791167(0x152)]['display']=_0x791167(0xe4),showMsg(_0x791167(0x120));})[_0x5c3550(0x119)](_0x39063b=>{const _0x4293e1=_0x5c3550;showMsg(_0x4293e1(0x148)+_0x39063b,!![]);});}function gerarSorteioAleatorio(){const _0x23646d=_0x24899d,_0x5e382e=document[_0x23646d(0x122)](_0x23646d(0x10f))[_0x23646d(0x1a3)][_0x23646d(0x1ba)]();if(!_0x5e382e){showMsg(_0x23646d(0xf1),!![]);return;}const _0x41675b=_0x5e382e[_0x23646d(0x186)]('\x0a')[_0x23646d(0x183)](_0x11d0a2=>_0x11d0a2['trim']()['toUpperCase']())[_0x23646d(0xe3)](_0x390836=>_0x390836!==''),_0x6c23a6=_0x41675b['length'],_0x4b81b0=_0x6c23a6;if(_0x6c23a6<0x5){showMsg(_0x23646d(0x121),!![]);return;}let _0x48fb73=_0x4b81b0,_0x125e2a={'aldeao':0x0,'forasteiro':0x0,'minion':0x0,'evil':0x1};if(_0x48fb73===0x5)_0x125e2a[_0x23646d(0x147)]=0x3,_0x125e2a[_0x23646d(0x180)]=0x0,_0x125e2a[_0x23646d(0x145)]=0x1;else{if(_0x48fb73===0x6)_0x125e2a['aldeao']=0x3,_0x125e2a[_0x23646d(0x180)]=0x1,_0x125e2a['minion']=0x1;else{if(_0x48fb73===0x7)_0x125e2a[_0x23646d(0x147)]=0x5,_0x125e2a[_0x23646d(0x180)]=0x0,_0x125e2a['minion']=0x1;else{if(_0x48fb73===0x8)_0x125e2a[_0x23646d(0x147)]=0x5,_0x125e2a[_0x23646d(0x180)]=0x1,_0x125e2a[_0x23646d(0x145)]=0x1;else{if(_0x48fb73===0x9)_0x125e2a[_0x23646d(0x147)]=0x5,_0x125e2a[_0x23646d(0x180)]=0x2,_0x125e2a[_0x23646d(0x145)]=0x1;else{if(_0x48fb73===0xa)_0x125e2a[_0x23646d(0x147)]=0x7,_0x125e2a['forasteiro']=0x0,_0x125e2a[_0x23646d(0x145)]=0x2;else{if(_0x48fb73===0xb)_0x125e2a[_0x23646d(0x147)]=0x7,_0x125e2a['forasteiro']=0x1,_0x125e2a['minion']=0x2;else{if(_0x48fb73===0xc)_0x125e2a['aldeao']=0x7,_0x125e2a[_0x23646d(0x180)]=0x2,_0x125e2a[_0x23646d(0x145)]=0x2;else _0x48fb73>=0xd&&(_0x125e2a[_0x23646d(0x145)]=0x3,_0x125e2a[_0x23646d(0x180)]=_0x48fb73===0xd?0x0:_0x48fb73===0xe?0x1:0x2,_0x125e2a[_0x23646d(0x147)]=_0x48fb73-_0x125e2a[_0x23646d(0x145)]-_0x125e2a['forasteiro']-0x1);}}}}}}}const _0x13dfb0=PERSONAGENS['filter'](_0x2a1f02=>_0x2a1f02[_0x23646d(0x136)]==='Aldeão')[_0x23646d(0x19b)](()=>Math[_0x23646d(0x17c)]()-0.5),_0x194934=PERSONAGENS[_0x23646d(0xe3)](_0x396746=>_0x396746['tipo']==='Forasteiro')['sort'](()=>Math[_0x23646d(0x17c)]()-0.5),_0x91bcac=PERSONAGENS['filter'](_0x353d60=>_0x353d60[_0x23646d(0x136)]===_0x23646d(0x116))[_0x23646d(0x19b)](()=>Math[_0x23646d(0x17c)]()-0.5),_0x123e79=PERSONAGENS[_0x23646d(0xe3)](_0x204fa4=>_0x204fa4[_0x23646d(0x136)]===_0x23646d(0x1c7))[_0x23646d(0x19b)](()=>Math[_0x23646d(0x17c)]()-0.5);let _0x5bb4dd=[];for(let _0x1ad11e=0x0;_0x1ad11e<_0x125e2a[_0x23646d(0x10b)];_0x1ad11e++){_0x5bb4dd['push'](_0x123e79[_0x23646d(0x187)]());}for(let _0x289a79=0x0;_0x289a79<_0x125e2a[_0x23646d(0x145)];_0x289a79++){_0x5bb4dd[_0x23646d(0x140)](_0x91bcac[_0x23646d(0x187)]());}for(let _0x4add4c=0x0;_0x4add4c<_0x125e2a[_0x23646d(0x180)];_0x4add4c++){_0x5bb4dd[_0x23646d(0x140)](_0x194934[_0x23646d(0x187)]());}for(let _0x202de5=0x0;_0x202de5<_0x125e2a[_0x23646d(0x147)];_0x202de5++){_0x5bb4dd[_0x23646d(0x140)](_0x13dfb0[_0x23646d(0x187)]());}const _0x1c5187=[..._0x41675b][_0x23646d(0x19b)](()=>Math[_0x23646d(0x17c)]()-0.5);_0x5bb4dd[_0x23646d(0x19b)](()=>Math['random']()-0.5);const _0x40e136=_0x1c5187['map']((_0x12e076,_0x161f1a)=>{const _0x258a6d=_0x23646d,_0x3d545c=_0x5bb4dd[_0x161f1a];if(!_0x3d545c)return null;return{'personagem':_0x3d545c[_0x258a6d(0x167)],'tipo':_0x3d545c[_0x258a6d(0x136)],'jogador':_0x12e076,'habilidade':_0x3d545c[_0x258a6d(0x16c)]};})[_0x23646d(0xe3)](_0x3eb20b=>_0x3eb20b!==null),_0x290e71={'num_jogadores':_0x6c23a6,'personagens_selecionados':_0x40e136};localStorage['setItem'](_0x23646d(0x1a6),JSON[_0x23646d(0x15a)](_0x290e71)),document[_0x23646d(0x122)](_0x23646d(0xf9))[_0x23646d(0x152)][_0x23646d(0x11b)]='none',document[_0x23646d(0x122)](_0x23646d(0x149))[_0x23646d(0x152)][_0x23646d(0x11b)]=_0x23646d(0xe4),showMsg('🎲\x20Sorteio\x20cego\x20concluído!\x20Enviando\x20ao\x20Firebase...'),enviarParaFirebase();}function validateSetup(){const _0x38c963=_0x24899d,_0x5da578=parseInt(document[_0x38c963(0x122)](_0x38c963(0x188))[_0x38c963(0x1a3)]),_0x340e5e=[];document[_0x38c963(0x193)](_0x38c963(0x115))['forEach'](_0x172c70=>{const _0x213d71=_0x38c963,_0x3fdeef=_0x172c70[_0x213d71(0x160)]('input[type=checkbox]'),_0x257be2=_0x172c70[_0x213d71(0x160)](_0x213d71(0xf4));if(_0x3fdeef[_0x213d71(0x14f)]){if(!_0x257be2[_0x213d71(0x1a3)]){showMsg(_0x213d71(0x1a9),!![]);return;}const _0x31e57c=PERSONAGENS[_0x213d71(0x195)](_0x1358eb=>_0x1358eb[_0x213d71(0x167)]===_0x3fdeef['dataset'][_0x213d71(0x11f)]);let _0x1eb65e=_0x31e57c['tipo'];_0x340e5e[_0x213d71(0x140)]({'personagem':_0x31e57c[_0x213d71(0x167)],'tipo':_0x1eb65e,'jogador':_0x257be2[_0x213d71(0x1a3)],'habilidade':_0x31e57c[_0x213d71(0x16c)]});}});if(_0x340e5e[_0x38c963(0xdf)]!==_0x5da578){showMsg(_0x38c963(0x1af)+_0x5da578+'\x20personagens.',!![]);return;}if(!_0x340e5e[_0x38c963(0x133)](_0x164527=>_0x164527[_0x38c963(0x136)]===_0x38c963(0x1c7))){showMsg(_0x38c963(0x1b4),!![]);return;}const _0x420e01={'num_jogadores':_0x5da578,'personagens_selecionados':_0x340e5e};localStorage[_0x38c963(0x1cd)](_0x38c963(0x1a6),JSON[_0x38c963(0x15a)](_0x420e01)),atualizarListaDrunk(),buildScreen2(_0x420e01);}function buildScreen2(_0x715c40){const _0x4f79b4=_0x24899d;document['getElementById'](_0x4f79b4(0xf9))[_0x4f79b4(0x152)][_0x4f79b4(0x11b)]=_0x4f79b4(0xe4),document[_0x4f79b4(0x122)](_0x4f79b4(0x149))[_0x4f79b4(0x152)][_0x4f79b4(0x11b)]=_0x4f79b4(0xfd);const _0x14fa3c=document[_0x4f79b4(0x122)]('orderList');_0x14fa3c['innerHTML']='';const _0xc6cf21=_0x715c40[_0x4f79b4(0x19c)];_0xc6cf21[_0x4f79b4(0x19b)]((_0x4d47cb,_0x56849a)=>{const _0x366f03=_0x4f79b4;return NIGHT_ORDER_1[_0x366f03(0xe8)](_0x4d47cb[_0x366f03(0xf0)])-NIGHT_ORDER_1['indexOf'](_0x56849a['personagem']);}),_0xc6cf21['forEach']((_0xb0c019,_0x1e8b65)=>{const _0x19a51e=_0x4f79b4,_0x3e64e4=document[_0x19a51e(0x18e)](_0x19a51e(0x156));let _0x11898b=_0xb0c019[_0x19a51e(0x136)];_0x3e64e4['className']=_0x19a51e(0x197)+_0x11898b,_0x3e64e4['innerHTML']='\x0a\x20\x20\x20\x20\x20\x20<strong>'+(_0x1e8b65+0x1)+'.\x20'+_0xb0c019[_0x19a51e(0xf0)]+'\x20('+_0xb0c019['tipo']+_0x19a51e(0x19f)+_0xb0c019['jogador']+_0x19a51e(0x1a1)+_0xb0c019['habilidade']+_0x19a51e(0x15e),_0x14fa3c[_0x19a51e(0xec)](_0x3e64e4);});}function goBack(){const _0x56570a=_0x24899d;document['getElementById'](_0x56570a(0x149))[_0x56570a(0x152)][_0x56570a(0x11b)]=_0x56570a(0xe4),document[_0x56570a(0x122)]('screen1')['style'][_0x56570a(0x11b)]=_0x56570a(0xfd);}let primeiroSelecionado=null;function abrirReordenacao(){const _0x2a32c7=_0x24899d;showMsg(_0x2a32c7(0x108)),db['ref'](_0x2a32c7(0x1bc))[_0x2a32c7(0x130)](_0x2a32c7(0x1a3))[_0x2a32c7(0x14b)](_0x4b0c92=>{const _0x5378ab=_0x2a32c7,_0x4141e2=[];_0x4b0c92[_0x5378ab(0x1c5)](_0x417da5=>{const _0x5f203e=_0x5378ab;_0x4141e2[_0x5f203e(0x140)]({'id':_0x417da5[_0x5f203e(0x1c3)],..._0x417da5[_0x5f203e(0x17e)]()});}),_0x4141e2[_0x5378ab(0x19b)]((_0x2bc67e,_0x1d9cb4)=>_0x2bc67e['posicao']-_0x1d9cb4['posicao']);const _0x7fd129=document['getElementById'](_0x5378ab(0x1b3));_0x7fd129[_0x5378ab(0x15f)]='',primeiroSelecionado=null,_0x4141e2[_0x5378ab(0x1c5)]((_0x505c19,_0x299cb6)=>{const _0x556dc9=_0x5378ab,_0x35e581=document[_0x556dc9(0x18e)](_0x556dc9(0x156));_0x35e581[_0x556dc9(0x146)]=_0x556dc9(0x10d),_0x35e581[_0x556dc9(0x152)]='display:\x20flex;\x20align-items:\x20center;\x20padding:\x2015px;\x20border:\x201px\x20solid\x20#ddd;\x20margin-bottom:\x208px;\x20border-radius:\x2010px;\x20background:\x20#fff;\x20box-shadow:\x200\x202px\x205px\x20rgba(0,0,0,0.05);',_0x35e581['dataset']['id']=_0x505c19['id'],_0x35e581[_0x556dc9(0x15f)]='\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<span\x20style=\x22font-weight:bold;\x20margin-right:15px;\x20color:#fbc02d;\x22>'+_0x299cb6+_0x556dc9(0x177)+_0x505c19[_0x556dc9(0x127)]+_0x556dc9(0x154)+_0x505c19[_0x556dc9(0xf0)]+_0x556dc9(0x178),_0x35e581['onclick']=()=>tratarCliqueTroca(_0x35e581),_0x7fd129[_0x556dc9(0xec)](_0x35e581);}),document['getElementById']('reorder-container')[_0x5378ab(0x152)][_0x5378ab(0x11b)]=_0x5378ab(0xfd);});}function tratarCliqueTroca(_0x40b035){const _0x4349de=_0x24899d;if(!primeiroSelecionado)primeiroSelecionado=_0x40b035,_0x40b035[_0x4349de(0x199)][_0x4349de(0xfa)]('selected');else{if(primeiroSelecionado===_0x40b035)primeiroSelecionado[_0x4349de(0x199)]['remove'](_0x4349de(0x16d)),primeiroSelecionado=null;else{const _0x46e1f5=document[_0x4349de(0x122)](_0x4349de(0x1b3)),_0x114d6a=primeiroSelecionado[_0x4349de(0x13f)],_0x1b4837=_0x40b035[_0x4349de(0x13f)];if(_0x114d6a===_0x40b035)_0x46e1f5['insertBefore'](_0x40b035,primeiroSelecionado);else _0x1b4837===primeiroSelecionado?_0x46e1f5[_0x4349de(0xfe)](primeiroSelecionado,_0x40b035):(_0x46e1f5[_0x4349de(0xfe)](_0x40b035,_0x114d6a),_0x46e1f5[_0x4349de(0xfe)](primeiroSelecionado,_0x1b4837));primeiroSelecionado[_0x4349de(0x199)][_0x4349de(0x14a)](_0x4349de(0x16d)),primeiroSelecionado=null,atualizarNumerosVisuais();}}}function atualizarNumerosVisuais(){const _0x159088=_0x24899d;document[_0x159088(0x193)](_0x159088(0x15c))['forEach']((_0x2ddde1,_0x49e049)=>{const _0x44cf34=_0x159088;_0x2ddde1[_0x44cf34(0x134)]=_0x49e049;});}function salvarNovaOrdem(){const _0x580b59=_0x24899d,_0x4fede5=document[_0x580b59(0x193)](_0x580b59(0x166)),_0x2f992c={};_0x4fede5[_0x580b59(0x1c5)]((_0x37df98,_0x3fc53e)=>{const _0x3f0b65=_0x580b59,_0xf6568f=_0x37df98[_0x3f0b65(0x16e)]['id'];_0x2f992c[_0x3f0b65(0x137)+_0xf6568f+_0x3f0b65(0x155)]=_0x3fc53e;}),db['ref']()[_0x580b59(0x100)](_0x2f992c)['then'](()=>{const _0x4530a5=_0x580b59;showMsg(_0x4530a5(0x1b0)),document[_0x4530a5(0x122)]('reorder-container')[_0x4530a5(0x152)][_0x4530a5(0x11b)]=_0x4530a5(0xe4);})['catch'](_0x436c68=>showMsg(_0x580b59(0x118)+_0x436c68,!![]));}function saveGame(){showMsg('Jogo\x20salvo\x20no\x20navegador!');}function downloadGame(){const _0x42eb11=_0x24899d,_0x9183ce=localStorage[_0x42eb11(0x158)](_0x42eb11(0x1a6));if(!_0x9183ce){showMsg(_0x42eb11(0x162),!![]);return;}const _0xc513d0=new Blob([_0x9183ce],{'type':'application/json'}),_0x3679e6=URL[_0x42eb11(0x1cf)](_0xc513d0),_0x1d84a6=document[_0x42eb11(0x18e)]('a');_0x1d84a6['href']=_0x3679e6,_0x1d84a6[_0x42eb11(0x1ac)]=_0x42eb11(0x170)+new Date()[_0x42eb11(0x103)]()[_0x42eb11(0x11c)](0x0,0xa)+_0x42eb11(0x126),document[_0x42eb11(0x174)][_0x42eb11(0xec)](_0x1d84a6),_0x1d84a6[_0x42eb11(0x171)](),document[_0x42eb11(0x174)][_0x42eb11(0x169)](_0x1d84a6),URL['revokeObjectURL'](_0x3679e6),showMsg('Arquivo\x20JSON\x20baixado\x20com\x20sucesso!');}const linksGerados={'ADVOGADO\x20DO\x20DIABO':_0x24899d(0x164),'APOSTADOR':_0x24899d(0x1b5),'ASSASSINO':_0x24899d(0x1a7),'BARÃO':'https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_barão_6uny.html','BIBLIOTECÁRIO':_0x24899d(0xe9),'BOBO':_0x24899d(0x189),'CARTOMANTE':_0x24899d(0xe6),'CHEFE':_0x24899d(0xe2),'CORTESÃO':_0x24899d(0x190),'COVEIRO':'https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_coveiro_wqok.html','DAMA\x20DO\x20CHÁ':_0x24899d(0x143),'EMPATA':_0x24899d(0x129),'ENVENENADOR':_0x24899d(0x123),'ESPIÃO':'https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_espião_rp2o.html','ESTALAJADEIRO':_0x24899d(0x12d),'EXORCISTA':'https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_exorcista_dcte.html','GERYON':_0x24899d(0x17b),'GUARDIÃO':_0x24899d(0x1ae),'GÊNIO\x20DO\x20CRIME':'https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_gênio\x20do\x20crime_48m3.html','INVESTIGADOR':_0x24899d(0xf7),'KRAKEN':_0x24899d(0x1b1),'LAVADEIRA':_0x24899d(0x124),'LOBISOMEM':_0x24899d(0x1b7),'LUNÁTICO':_0x24899d(0x132),'MARINHEIRO':_0x24899d(0x14e),'MATADOR':_0x24899d(0x1aa),'MENESTREL':_0x24899d(0x192),'MONGE':_0x24899d(0x17a),'MORDOMO':'https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_mordomo_ijx7.html','MULHER\x20ESCARLATE':_0x24899d(0x181),'NARRADOR':'https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_narrador_8db3.html','PADRINHO':_0x24899d(0x1b9),'PREFEITO':_0x24899d(0x117),'PROFESSOR':'https://jordanodavila.github.io/botc_vfechado/jogadores_bad_moon/jogo_professor_jf0b.html','PUKKA':_0x24899d(0x1bf),'RECLUSO':_0x24899d(0x1b2),'SANTO':_0x24899d(0x1cb),'SOLDADO':_0x24899d(0xef),'TODOS':_0x24899d(0x185),'VIRGEM':_0x24899d(0x161),'VOVÓ':_0x24899d(0x11d)};function enviarParaFirebase(){const _0x41cf14=_0x24899d,_0x5461c5=JSON['parse'](localStorage[_0x41cf14(0x158)](_0x41cf14(0x1a6))),_0x5b7815=_0x5461c5[_0x41cf14(0x19c)],_0x56dd79=_0x5b7815['length'],_0x4c3cd7=document[_0x41cf14(0x122)](_0x41cf14(0xe0))[_0x41cf14(0x1a3)];if(!_0x5461c5||!_0x5461c5[_0x41cf14(0x19c)]){showMsg('Não\x20há\x20dados\x20de\x20partida\x20para\x20enviar!',!![]);return;}const _0x31fe8b=_0x5b7815[_0x41cf14(0x133)](_0x26144d=>_0x26144d['personagem']===_0x41cf14(0xea)),_0x1054b8=_0x5b7815[_0x41cf14(0x133)](_0x519ab0=>_0x519ab0[_0x41cf14(0x136)]===_0x41cf14(0x18c)||_0x519ab0[_0x41cf14(0xf0)]===_0x4c3cd7);if(_0x31fe8b&&!_0x1054b8){const _0xabfb3a=confirm(_0x41cf14(0x12c));if(!_0xabfb3a)return;}const _0x85af03=_0x5b7815[_0x41cf14(0x133)](_0x2ee626=>_0x2ee626[_0x41cf14(0xf0)]===_0x41cf14(0xed));if(_0x85af03){let _0x5e6c1c=0x0;if(_0x56dd79===0x6||_0x56dd79===0x8||_0x56dd79===0xb||_0x56dd79===0xe)_0x5e6c1c=0x1;else(_0x56dd79===0x9||_0x56dd79===0xc||_0x56dd79>=0xf)&&(_0x5e6c1c=0x2);const _0x5190d1=_0x5e6c1c+0x2,_0x3c2890=_0x5b7815[_0x41cf14(0xe3)](_0x208deb=>_0x208deb[_0x41cf14(0x136)]===_0x41cf14(0x18c)||_0x208deb[_0x41cf14(0xf0)]===_0x4c3cd7)[_0x41cf14(0xdf)];if(_0x3c2890!==_0x5190d1){const _0x50e390=confirm(_0x41cf14(0x1b6)+('Para\x20'+_0x56dd79+_0x41cf14(0x19a)+_0x5190d1+_0x41cf14(0x172)+_0x5e6c1c+'\x20+\x202\x20do\x20Barão).\x0a')+('Você\x20configurou\x20apenas\x20'+_0x3c2890+_0x41cf14(0x163))+_0x41cf14(0x1c9));if(!_0x50e390)return;}}db[_0x41cf14(0x15b)](_0x41cf14(0xe7))[_0x41cf14(0x14a)]()[_0x41cf14(0x14b)](()=>{const _0x599c33=_0x41cf14,_0xfb762f={};_0xfb762f[_0x599c33(0x114)]=![],_0xfb762f[_0x599c33(0x1c8)]=![];_0x4c3cd7&&_0x4c3cd7!==''&&(_0xfb762f[_0x599c33(0x11a)+_0x4c3cd7]='P');_0xfb762f[_0x599c33(0x11a)+_0x4c3cd7]='P',_0xfb762f[_0x599c33(0xf2)]=!![],_0xfb762f[_0x599c33(0xfb)]=_0x599c33(0x18d);const _0x17e685=PERSONAGENS['filter'](_0x30f7a2=>_0x30f7a2[_0x599c33(0x136)]==='Aldeão'),_0x4f7a56=_0x5b7815[_0x599c33(0xe3)](_0xab1252=>_0xab1252[_0x599c33(0x136)]===_0x599c33(0x1bd))[_0x599c33(0x183)](_0x2c7d05=>_0x2c7d05[_0x599c33(0xf0)]),_0x1e0912=_0x17e685[_0x599c33(0xe3)](_0x586389=>!_0x4f7a56[_0x599c33(0x113)](_0x586389['nome']))[_0x599c33(0x19b)](()=>Math[_0x599c33(0x17c)]()-0.5),_0x1aab18=_0x1e0912[_0x599c33(0x11c)](0x0,0x3)['map'](_0x3342ef=>_0x3342ef['nome']);_0xfb762f[_0x599c33(0x19d)]=_0x1aab18;const _0x52a9b4=_0x5b7815['find'](_0x30ef9c=>_0x30ef9c[_0x599c33(0xf0)]===_0x599c33(0xff));if(_0x52a9b4){const _0xa8c9ba=_0x5b7815['filter'](_0x2d8e50=>_0x2d8e50[_0x599c33(0x136)]===_0x599c33(0x1bd)&&_0x2d8e50[_0x599c33(0xf0)]!==_0x4c3cd7&&_0x2d8e50[_0x599c33(0x127)]!==_0x52a9b4[_0x599c33(0x127)]);if(_0xa8c9ba[_0x599c33(0xdf)]>0x0){const _0x467a51=_0xa8c9ba[Math[_0x599c33(0x112)](Math[_0x599c33(0x17c)]()*_0xa8c9ba[_0x599c33(0xdf)])],_0x2de18b=_0x5b7815['filter'](_0x5d6b04=>_0x5d6b04[_0x599c33(0x127)]!==_0x52a9b4[_0x599c33(0x127)]&&_0x5d6b04['jogador']!==_0x467a51[_0x599c33(0x127)]),_0xf2c80e=_0x2de18b[Math[_0x599c33(0x112)](Math[_0x599c33(0x17c)]()*_0x2de18b[_0x599c33(0xdf)])];_0xfb762f[_0x599c33(0x1a0)]=_0x467a51[_0x599c33(0xf0)],_0xfb762f[_0x599c33(0x1b8)]=_0x467a51[_0x599c33(0x127)],_0xfb762f[_0x599c33(0x157)]=_0xf2c80e[_0x599c33(0x127)];}}const _0x52311b=_0x5b7815['find'](_0x1d924c=>_0x1d924c[_0x599c33(0xf0)]===_0x599c33(0xea));if(_0x52311b){const _0x14fef8=_0x5b7815['filter'](_0x4ed1d7=>(_0x4ed1d7[_0x599c33(0x136)]===_0x599c33(0x18c)||_0x4ed1d7['personagem']===_0x4c3cd7)&&_0x4ed1d7[_0x599c33(0x127)]!==_0x52311b[_0x599c33(0x127)]);if(_0x14fef8['length']>0x0){const _0x2c1187=_0x14fef8[Math[_0x599c33(0x112)](Math[_0x599c33(0x17c)]()*_0x14fef8[_0x599c33(0xdf)])],_0x57b548=_0x5b7815[_0x599c33(0xe3)](_0x2565ce=>_0x2565ce[_0x599c33(0x127)]!==_0x52311b[_0x599c33(0x127)]&&_0x2565ce['jogador']!==_0x2c1187['jogador']),_0x38f3e9=_0x57b548[Math['floor'](Math[_0x599c33(0x17c)]()*_0x57b548[_0x599c33(0xdf)])],_0x5e63fc=_0x2c1187['personagem']===_0x4c3cd7?_0x599c33(0xf5):_0x2c1187[_0x599c33(0xf0)];_0xfb762f[_0x599c33(0xeb)]=_0x5e63fc,_0xfb762f[_0x599c33(0x179)]=_0x2c1187['jogador'],_0xfb762f['partida/escolhasNoite/selectedBibliotecárioFakePlayer']=_0x38f3e9[_0x599c33(0x127)];}}const _0x15269d=_0x5b7815[_0x599c33(0x195)](_0x2fab40=>_0x2fab40['personagem']===_0x599c33(0x106));if(_0x15269d){const _0x56de43=_0x5b7815[_0x599c33(0xe3)](_0x155637=>_0x155637['tipo']==='Minion');if(_0x56de43[_0x599c33(0xdf)]>0x0){const _0x2c7105=_0x56de43[Math[_0x599c33(0x112)](Math[_0x599c33(0x17c)]()*_0x56de43[_0x599c33(0xdf)])],_0x29ffd8=_0x5b7815[_0x599c33(0xe3)](_0x239285=>_0x239285['jogador']!==_0x15269d['jogador']&&_0x239285['jogador']!==_0x2c7105[_0x599c33(0x127)]),_0x24eff5=_0x29ffd8[Math[_0x599c33(0x112)](Math[_0x599c33(0x17c)]()*_0x29ffd8[_0x599c33(0xdf)])];_0xfb762f[_0x599c33(0x1a4)]=_0x2c7105['personagem'],_0xfb762f['partida/escolhasNoite/selectedInvestigadorRealPlayer']=_0x2c7105[_0x599c33(0x127)],_0xfb762f[_0x599c33(0x107)]=_0x24eff5['jogador'];}}const _0x31cd11=_0x5b7815[_0x599c33(0x195)](_0x503c18=>_0x503c18['personagem']===_0x599c33(0x1ad));if(_0x31cd11){const _0x469462=_0x5b7815[_0x599c33(0xe3)](_0x13dad0=>(_0x13dad0['tipo']===_0x599c33(0x1bd)||_0x13dad0['tipo']===_0x599c33(0x18c))&&_0x13dad0[_0x599c33(0x127)]!==_0x31cd11[_0x599c33(0x127)]);if(_0x469462[_0x599c33(0xdf)]>0x0){const _0x176575=_0x469462[Math[_0x599c33(0x112)](Math[_0x599c33(0x17c)]()*_0x469462[_0x599c33(0xdf)])];_0xfb762f['partida/configuracao/vovoNetoJogador']=_0x176575[_0x599c33(0x127)],_0xfb762f['partida/configuracao/vovoNetoPersonagem']=_0x176575[_0x599c33(0xf0)];const _0x3ce424=_0x5b7815[_0x599c33(0xe3)](_0x32ec1a=>_0x32ec1a[_0x599c33(0x127)]!==_0x31cd11['jogador']&&_0x32ec1a[_0x599c33(0x127)]!==_0x176575[_0x599c33(0x127)]),_0x91a4dc=_0x5b7815[_0x599c33(0xe3)](_0x4f034f=>_0x4f034f['tipo']===_0x599c33(0x1bd)&&_0x4f034f['personagem']!=='Vovó');if(_0x3ce424[_0x599c33(0xdf)]>0x0&&_0x91a4dc['length']>0x0){const _0x14ea78=_0x3ce424[Math[_0x599c33(0x112)](Math[_0x599c33(0x17c)]()*_0x3ce424[_0x599c33(0xdf)])],_0x518666=_0x91a4dc[Math[_0x599c33(0x112)](Math[_0x599c33(0x17c)]()*_0x91a4dc[_0x599c33(0xdf)])][_0x599c33(0xf0)];_0xfb762f[_0x599c33(0x168)]=_0x14ea78[_0x599c33(0x127)],_0xfb762f[_0x599c33(0x125)]=_0x518666;}}}const _0x1dd731=_0x5b7815[_0x599c33(0x19b)](()=>Math['random']()-0.5);_0x1dd731[_0x599c33(0x1c5)]((_0x1bc5cc,_0x410692)=>{const _0xcfd583=_0x599c33,_0xc64715=_0x1bc5cc[_0xcfd583(0x127)][_0xcfd583(0x142)](/[.#$[\]]/g,''),_0x26157a=linksGerados[_0x1bc5cc[_0xcfd583(0xf0)]['toUpperCase']()]||'';_0xfb762f['partida/jogadores/'+_0xc64715]={'personagem':_0x1bc5cc['personagem'],'tipo':_0x1bc5cc[_0xcfd583(0x136)],'jogador':_0x1bc5cc['jogador'],'habilidade':_0x1bc5cc[_0xcfd583(0x16c)],'vivo':!![],'senha':'','posicao':_0x410692,'url_pessoal':_0x26157a};}),db[_0x599c33(0x15b)]()['update'](_0xfb762f)[_0x599c33(0x14b)](()=>showMsg(_0x599c33(0x159)))[_0x599c33(0x119)](_0x11d98d=>showMsg(_0x599c33(0x15d)+_0x11d98d,!![]));});}function atualizarListaDrunk(){const _0x20712e=_0x24899d,_0x163670=document[_0x20712e(0x122)](_0x20712e(0xe0));if(!_0x163670)return;_0x163670[_0x20712e(0x15f)]=_0x20712e(0x1ce);const _0x3cd0d4=JSON['parse'](localStorage[_0x20712e(0x158)](_0x20712e(0x1a6)));_0x3cd0d4&&_0x3cd0d4['personagens_selecionados']&&_0x3cd0d4[_0x20712e(0x19c)]['forEach'](_0x25a42d=>{const _0x507ca4=_0x20712e;if(_0x25a42d['tipo']===_0x507ca4(0x1bd)){const _0x5ecb3f=document[_0x507ca4(0x18e)](_0x507ca4(0x173));_0x5ecb3f[_0x507ca4(0x1a3)]=_0x25a42d[_0x507ca4(0xf0)],_0x5ecb3f[_0x507ca4(0x141)]=_0x25a42d[_0x507ca4(0xf0)]+'\x20('+_0x25a42d['jogador']+')',_0x163670[_0x507ca4(0xec)](_0x5ecb3f);}});}
+
+  </script>
+
+</body>
+
+</html>
